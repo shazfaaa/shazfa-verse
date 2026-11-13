@@ -13,7 +13,6 @@ export const TRANSLATIONS = {
       collab: "Let's Collab",
     },
     hero: {
-      tagline: '“Our brightest season begins right now.” ✦',
       bio: "Hello there! I'm Shazfa—an Information Systems fresh graduate from Universitas Gunadarma combining UI/UX design in Figma, full-stack web development with Laravel, and agile Scrum & UAT testing.",
       ctaKnowMe: 'GET TO KNOW ME',
       ctaTalk: "LET'S TALK",
@@ -220,7 +219,6 @@ export const TRANSLATIONS = {
       collab: 'Kolaborasi',
     },
     hero: {
-      tagline: '“Musim terbaik kita dimulai sekarang.” ✦',
       bio: 'Halo! Saya Shazfa—fresh graduate Sistem Informasi Universitas Gunadarma yang memadukan desain UI/UX di Figma, pengembangan web full-stack dengan Laravel, serta agile Scrum & pengujian UAT.',
       ctaKnowMe: 'KENALI SAYA',
       ctaTalk: 'HUBUNGI SAYA',

@@ -252,14 +252,20 @@ function renderBackgroundStars() {
   if (!container) return;
 
   const stars = [
-    { top: '8%', left: '6%', char: '✦', size: 15, delay: '0s', duration: '6s', color: 'text-[#7DA7D9]/45 dark:text-[#72E2E6]/40' },
-    { top: '14%', left: '91%', char: '✧', size: 17, delay: '1.1s', duration: '6.8s', color: 'text-[#72E2E6]/50 dark:text-[#FFF7CC]/45' },
-    { top: '24%', left: '4%', char: '✧', size: 13, delay: '0.6s', duration: '5.8s', color: 'text-[#7DA7D9]/40 dark:text-[#7DA7D9]/45' },
-    { top: '36%', left: '94%', char: '✦', size: 16, delay: '1.7s', duration: '6.4s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/50' },
+    { top: '6%', left: '5%', char: '✦', size: 15, delay: '0s', duration: '6s', color: 'text-[#7DA7D9]/45 dark:text-[#72E2E6]/40' },
+    { top: '12%', left: '92%', char: '✧', size: 17, delay: '1.1s', duration: '6.8s', color: 'text-[#72E2E6]/50 dark:text-[#FFF7CC]/45' },
+    { top: '19%', left: '12%', char: '⋆', size: 13, delay: '1.9s', duration: '5.6s', color: 'text-[#E0C860]/60 dark:text-[#FFF7CC]/45' },
+    { top: '26%', left: '4%', char: '✧', size: 13, delay: '0.6s', duration: '5.8s', color: 'text-[#7DA7D9]/40 dark:text-[#7DA7D9]/45' },
+    { top: '31%', left: '88%', char: '✦', size: 12, delay: '2.4s', duration: '6.3s', color: 'text-[#72E2E6]/45 dark:text-[#72E2E6]/45' },
+    { top: '38%', left: '95%', char: '✦', size: 16, delay: '1.7s', duration: '6.4s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/50' },
     { top: '49%', left: '5%', char: '✦', size: 14, delay: '0.9s', duration: '7s', color: 'text-[#72E2E6]/40 dark:text-[#72E2E6]/40' },
-    { top: '61%', left: '92%', char: '✧', size: 15, delay: '2.1s', duration: '6.2s', color: 'text-[#7DA7D9]/45 dark:text-[#7DA7D9]/45' },
-    { top: '76%', left: '6%', char: '✧', size: 16, delay: '1.4s', duration: '6.6s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/40' },
-    { top: '89%', left: '90%', char: '✦', size: 14, delay: '0.4s', duration: '5.9s', color: 'text-[#72E2E6]/45 dark:text-[#72E2E6]/45' },
+    { top: '55%', left: '91%', char: '⋆', size: 14, delay: '0.2s', duration: '6.1s', color: 'text-[#E0C860]/55 dark:text-[#FFF7CC]/45' },
+    { top: '63%', left: '93%', char: '✧', size: 15, delay: '2.1s', duration: '6.2s', color: 'text-[#7DA7D9]/45 dark:text-[#7DA7D9]/45' },
+    { top: '71%', left: '7%', char: '✦', size: 12, delay: '1.5s', duration: '5.9s', color: 'text-[#7DA7D9]/40 dark:text-[#72E2E6]/40' },
+    { top: '78%', left: '4%', char: '✧', size: 16, delay: '1.4s', duration: '6.6s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/40' },
+    { top: '84%', left: '86%', char: '✧', size: 13, delay: '2.7s', duration: '6.4s', color: 'text-[#72E2E6]/45 dark:text-[#7DA7D9]/45' },
+    { top: '90%', left: '91%', char: '✦', size: 14, delay: '0.4s', duration: '5.9s', color: 'text-[#72E2E6]/45 dark:text-[#72E2E6]/45' },
+    { top: '93%', left: '8%', char: '⋆', size: 15, delay: '1.0s', duration: '6.7s', color: 'text-[#E0C860]/55 dark:text-[#FFF7CC]/45' },
   ];
 
   container.innerHTML = stars
@@ -278,18 +284,39 @@ function renderHeroScatteredStars() {
   if (!container) return;
 
   const heroStars = [
-    { top: '10%', left: '9%', char: '✦', size: 16, delay: '0s', duration: '5.5s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
-    { top: '15%', left: '22%', char: '✧', size: 12, delay: '1.2s', duration: '6.4s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/60' },
-    { top: '9%', left: '78%', char: '✧', size: 14, delay: '0.7s', duration: '6s', color: 'text-[#7DA7D9]/60 dark:text-[#FFF7CC]/65' },
-    { top: '18%', left: '90%', char: '✦', size: 17, delay: '1.8s', duration: '5.8s', color: 'text-[#72E2E6]/60 dark:text-[#72E2E6]/65' },
-    { top: '36%', left: '6%', char: '✧', size: 14, delay: '2.3s', duration: '6.6s', color: 'text-[#7DA7D9]/55 dark:text-[#7DA7D9]/60' },
-    { top: '44%', left: '15%', char: '✦', size: 11, delay: '0.9s', duration: '5.2s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/60' },
-    { top: '38%', left: '85%', char: '✦', size: 12, delay: '1.5s', duration: '6.2s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/60' },
-    { top: '48%', left: '93%', char: '✧', size: 15, delay: '0.3s', duration: '5.7s', color: 'text-[#7DA7D9]/60 dark:text-[#72E2E6]/55' },
-    { top: '68%', left: '10%', char: '✦', size: 15, delay: '1.9s', duration: '6.5s', color: 'text-[#72E2E6]/55 dark:text-[#72E2E6]/50' },
-    { top: '76%', left: '24%', char: '✧', size: 11, delay: '0.5s', duration: '5.4s', color: 'text-[#7DA7D9]/50 dark:text-[#FFF7CC]/50' },
-    { top: '72%', left: '76%', char: '✧', size: 12, delay: '2.1s', duration: '6.1s', color: 'text-[#7DA7D9]/55 dark:text-[#7DA7D9]/55' },
-    { top: '80%', left: '88%', char: '✦', size: 16, delay: '1.0s', duration: '5.9s', color: 'text-[#7DA7D9]/60 dark:text-[#FFF7CC]/55' },
+    // Top perimeter
+    { top: '6%', left: '6%', char: '✦', size: 16, delay: '0s', duration: '5.5s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
+    { top: '8%', left: '19%', char: '✧', size: 12, delay: '1.2s', duration: '6.4s', color: 'text-[#72E2E6]/70 dark:text-[#72E2E6]/65' },
+    { top: '5%', left: '34%', char: '⋆', size: 14, delay: '0.4s', duration: '5.8s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
+    { top: '6%', left: '65%', char: '⋆', size: 13, delay: '1.6s', duration: '6.2s', color: 'text-[#7DA7D9]/60 dark:text-[#72E2E6]/55' },
+    { top: '9%', left: '79%', char: '✧', size: 15, delay: '0.7s', duration: '6s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/65' },
+    { top: '7%', left: '92%', char: '✦', size: 17, delay: '1.8s', duration: '5.8s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/65' },
+
+    // Left flank
+    { top: '20%', left: '11%', char: '⋆', size: 13, delay: '2.1s', duration: '5.7s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/60' },
+    { top: '28%', left: '25%', char: '✦', size: 11, delay: '0.8s', duration: '6.3s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
+    { top: '35%', left: '5%', char: '✧', size: 15, delay: '2.3s', duration: '6.6s', color: 'text-[#7DA7D9]/60 dark:text-[#7DA7D9]/60' },
+    { top: '45%', left: '16%', char: '✦', size: 12, delay: '0.9s', duration: '5.2s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/65' },
+    { top: '56%', left: '7%', char: '⋆', size: 14, delay: '1.4s', duration: '6.1s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
+    { top: '64%', left: '21%', char: '✧', size: 12, delay: '0.3s', duration: '5.9s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/55' },
+
+    // Right flank
+    { top: '21%', left: '87%', char: '✦', size: 13, delay: '1.1s', duration: '5.6s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
+    { top: '29%', left: '74%', char: '✧', size: 11, delay: '2.5s', duration: '6.5s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
+    { top: '38%', left: '84%', char: '✦', size: 13, delay: '1.5s', duration: '6.2s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/65' },
+    { top: '47%', left: '94%', char: '✧', size: 16, delay: '0.3s', duration: '5.7s', color: 'text-[#7DA7D9]/65 dark:text-[#72E2E6]/60' },
+    { top: '58%', left: '89%', char: '⋆', size: 14, delay: '2.0s', duration: '6.0s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
+    { top: '65%', left: '78%', char: '✦', size: 11, delay: '0.6s', duration: '5.5s', color: 'text-[#7DA7D9]/60 dark:text-[#FFF7CC]/55' },
+
+    // Bottom framing
+    { top: '72%', left: '10%', char: '✦', size: 16, delay: '1.9s', duration: '6.5s', color: 'text-[#72E2E6]/60 dark:text-[#72E2E6]/55' },
+    { top: '79%', left: '25%', char: '✧', size: 12, delay: '0.5s', duration: '5.4s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/55' },
+    { top: '86%', left: '15%', char: '⋆', size: 14, delay: '2.6s', duration: '6.3s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
+    { top: '88%', left: '37%', char: '✧', size: 11, delay: '1.3s', duration: '5.8s', color: 'text-[#72E2E6]/55 dark:text-[#72E2E6]/50' },
+    { top: '87%', left: '63%', char: '✦', size: 11, delay: '0.7s', duration: '6.2s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/50' },
+    { top: '75%', left: '75%', char: '✧', size: 12, delay: '2.1s', duration: '6.1s', color: 'text-[#7DA7D9]/60 dark:text-[#7DA7D9]/55' },
+    { top: '82%', left: '88%', char: '✦', size: 16, delay: '1.0s', duration: '5.9s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
+    { top: '90%', left: '80%', char: '⋆', size: 13, delay: '2.4s', duration: '6.4s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
   ];
 
   container.innerHTML = heroStars
