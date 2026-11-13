@@ -3,7 +3,7 @@ export const PERSONAL_INFO = {
   fullName: "Shazfa Delphinia Arifinnisa Rasyid",
   role: "UI Designer · Web Developer · IT Business Analyst",
   university: "Universitas Gunadarma",
-  degree: "S1 Sistem Informasi (S.Kom)",
+  degree: "Information Systems",
   gpa: "3.71 / 4.00",
   location: "Bekasi, ID",
   email: "shazfa.delphinia@gmail.com",
@@ -132,7 +132,7 @@ const EXPERIENCE_TIMELINE_DATA = {
     {
       year: "2022–2026",
       badge: "ACADEMIC & THESIS",
-      title: "B.Sc. Information Systems (S.Kom) — GPA 3.71 / 4.00 & RUNA Thesis",
+      title: "Information Systems — GPA 3.71 / 4.00 & RUNA Thesis",
       org: "Universitas Gunadarma · Depok, Indonesia",
       desc: "Pursued Information Systems focusing on business process analysis, UML/ERD modeling, UI/UX, and web engineering. Built the RUNA resident management system thesis using Laravel 12, Agile Scrum (3 Sprints), and UAT (94.5%).",
       tags: ["Information Systems", "Thesis (RUNA)", "Laravel 12 · Scrum"],
@@ -174,7 +174,7 @@ const EXPERIENCE_TIMELINE_DATA = {
     {
       year: "2022–2026",
       badge: "AKADEMIK & SKRIPSI",
-      title: "S1 Sistem Informasi (S.Kom) — IPK 3,71 / 4,00 & Skripsi RUNA",
+      title: "Sistem Informasi — IPK 3,71 / 4,00 & Skripsi RUNA",
       org: "Universitas Gunadarma · Depok, Indonesia",
       desc: "Menempuh studi Sistem Informasi dengan fokus analisis proses bisnis, UML/ERD, UI/UX, dan rekayasa web. Menyusun skripsi rancang bangun sistem manajemen warga RUNA menggunakan Laravel 12, metode Scrum (3 Sprint), dan UAT (94,5%).",
       tags: ["Sistem Informasi", "Skripsi (RUNA)", "Laravel 12 · Scrum"],

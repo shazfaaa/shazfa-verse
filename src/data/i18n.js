@@ -26,8 +26,8 @@ export const TRANSLATIONS = {
         'For me, building great digital products starts with <strong class="font-semibold text-[#2F4860] dark:text-white">understanding real user and business needs</strong>. With my Information Systems background, I work collaboratively through the <strong class="font-semibold text-[#2F4860] dark:text-white">Scrum framework</strong> and conduct rigorous <strong class="font-semibold text-[#2F4860] dark:text-white">User Acceptance Testing (UAT)</strong> to ensure software features are functional, reliable, and ready for release.',
       p3Html:
         'I translate those verified needs into intuitive <strong class="font-semibold text-[#2F4860] dark:text-white">UI/UX designs</strong> in Figma, and build responsive web applications using <strong class="font-semibold text-[#2F4860] dark:text-white">Laravel, HTML, CSS, and JavaScript</strong>. I am also <strong class="font-semibold text-[#2F4860] dark:text-white">proficient in English</strong> (both verbal and written communication) for smooth cross-functional and global collaboration.',
-      photoTag: '✨ S.Kom · Information Systems',
-      photoDegree: 'B.Sc. Information Systems · Universitas Gunadarma',
+      photoTag: '✨ Information Systems',
+      photoDegree: 'Information Systems · Universitas Gunadarma',
       collabStatus: 'Ready to collaborate',
       playlistTitle: "Shazfa's Playlist",
       playlistRepeat: '✦ on repeat',
@@ -56,7 +56,7 @@ export const TRANSLATIONS = {
     },
     education: {
       heading: 'Education',
-      degree: 'Bachelor of Information Systems (S.Kom) — 3.71 / 4.00 GPA',
+      degree: 'Information Systems — 3.71 / 4.00 GPA',
       faculty: 'Faculty of Computer Science & Information Technology · Depok, Indonesia',
       period: 'Sep 2022 — Aug 2026',
     },
@@ -232,8 +232,8 @@ export const TRANSLATIONS = {
         'Bagi saya, membangun produk digital yang baik dimulai dari <strong class="font-semibold text-[#2F4860] dark:text-white">memahami kebutuhan nyata pengguna dan bisnis</strong>. Dengan latar belakang Sistem Informasi, saya terbiasa berkolaborasi menggunakan <strong class="font-semibold text-[#2F4860] dark:text-white">kerangka kerja Scrum</strong> serta melakukan <strong class="font-semibold text-[#2F4860] dark:text-white">User Acceptance Testing (UAT)</strong> secara menyeluruh agar fitur fungsional, andal, dan siap rilis.',
       p3Html:
         'Kebutuhan yang tervalidasi tersebut saya terjemahkan menjadi <strong class="font-semibold text-[#2F4860] dark:text-white">desain UI/UX</strong> yang intuitif di Figma, serta membangun aplikasi web responsif menggunakan <strong class="font-semibold text-[#2F4860] dark:text-white">Laravel, HTML, CSS, dan JavaScript</strong>. Saya juga <strong class="font-semibold text-[#2F4860] dark:text-white">mahir berbahasa Inggris</strong> (lisan maupun tulisan) untuk kolaborasi lintas tim dan global.',
-      photoTag: '✨ S.Kom · Sistem Informasi',
-      photoDegree: 'S1 Sistem Informasi · Universitas Gunadarma',
+      photoTag: '✨ Sistem Informasi',
+      photoDegree: 'Sistem Informasi · Universitas Gunadarma',
       collabStatus: 'Siap berkolaborasi',
       playlistTitle: 'Playlist Shazfa',
       playlistRepeat: '✦ sering diputar',
@@ -262,7 +262,7 @@ export const TRANSLATIONS = {
     },
     education: {
       heading: 'Pendidikan',
-      degree: 'S1 Sistem Informasi (S.Kom) — IPK 3,71 / 4,00',
+      degree: 'Sistem Informasi — IPK 3,71 / 4,00',
       faculty: 'Fakultas Ilmu Komputer & Teknologi Informasi · Depok, Indonesia',
       period: 'Sep 2022 — Agu 2026',
     },
