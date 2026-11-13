@@ -247,87 +247,217 @@ function initContactCopy() {
 /* ================================================================ */
 /* 2. DECORATIVE STARS & MARQUEE RIBBONS                            */
 /* ================================================================ */
+const STARLIGHT_PATH = 'M12 0 L13.85 10.15 L24 12 L13.85 13.85 L12 24 L10.15 13.85 L0 12 L10.15 10.15 Z';
+
+function createStarGlintMarkup({ top, left, size, delay, duration, color }) {
+  return `
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      class="absolute select-none animate-gentle-star starlight-glint ${color}"
+      style="top:${top};left:${left};width:${size}px;height:${size}px;animation-delay:${delay};animation-duration:${duration};"
+    >
+      <path d="${STARLIGHT_PATH}" />
+    </svg>`;
+}
+
+function createStardustDotMarkup({ top, left, size, delay, duration, color }) {
+  return `
+    <span
+      aria-hidden="true"
+      class="absolute select-none animate-cute-twinkle stardust-dot ${color}"
+      style="top:${top};left:${left};width:${size}px;height:${size}px;background-color:currentColor;animation-delay:${delay};animation-duration:${duration};"
+    ></span>`;
+}
+
 function renderBackgroundStars() {
   const container = document.getElementById('background-stars');
   if (!container) return;
 
-  const stars = [
-    { top: '6%', left: '5%', char: '✦', size: 15, delay: '0s', duration: '6s', color: 'text-[#7DA7D9]/45 dark:text-[#72E2E6]/40' },
-    { top: '12%', left: '92%', char: '✧', size: 17, delay: '1.1s', duration: '6.8s', color: 'text-[#72E2E6]/50 dark:text-[#FFF7CC]/45' },
-    { top: '19%', left: '12%', char: '⋆', size: 13, delay: '1.9s', duration: '5.6s', color: 'text-[#E0C860]/60 dark:text-[#FFF7CC]/45' },
-    { top: '26%', left: '4%', char: '✧', size: 13, delay: '0.6s', duration: '5.8s', color: 'text-[#7DA7D9]/40 dark:text-[#7DA7D9]/45' },
-    { top: '31%', left: '88%', char: '✦', size: 12, delay: '2.4s', duration: '6.3s', color: 'text-[#72E2E6]/45 dark:text-[#72E2E6]/45' },
-    { top: '38%', left: '95%', char: '✦', size: 16, delay: '1.7s', duration: '6.4s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/50' },
-    { top: '49%', left: '5%', char: '✦', size: 14, delay: '0.9s', duration: '7s', color: 'text-[#72E2E6]/40 dark:text-[#72E2E6]/40' },
-    { top: '55%', left: '91%', char: '⋆', size: 14, delay: '0.2s', duration: '6.1s', color: 'text-[#E0C860]/55 dark:text-[#FFF7CC]/45' },
-    { top: '63%', left: '93%', char: '✧', size: 15, delay: '2.1s', duration: '6.2s', color: 'text-[#7DA7D9]/45 dark:text-[#7DA7D9]/45' },
-    { top: '71%', left: '7%', char: '✦', size: 12, delay: '1.5s', duration: '5.9s', color: 'text-[#7DA7D9]/40 dark:text-[#72E2E6]/40' },
-    { top: '78%', left: '4%', char: '✧', size: 16, delay: '1.4s', duration: '6.6s', color: 'text-[#7DA7D9]/45 dark:text-[#FFF7CC]/40' },
-    { top: '84%', left: '86%', char: '✧', size: 13, delay: '2.7s', duration: '6.4s', color: 'text-[#72E2E6]/45 dark:text-[#7DA7D9]/45' },
-    { top: '90%', left: '91%', char: '✦', size: 14, delay: '0.4s', duration: '5.9s', color: 'text-[#72E2E6]/45 dark:text-[#72E2E6]/45' },
-    { top: '93%', left: '8%', char: '⋆', size: 15, delay: '1.0s', duration: '6.7s', color: 'text-[#E0C860]/55 dark:text-[#FFF7CC]/45' },
+  const glints = [
+    { top: '7%', left: '5%', size: 15, delay: '0s', duration: '5.8s', color: 'text-[#7DA7D9]/70 dark:text-[#72E2E6]/75' },
+    { top: '14%', left: '92%', size: 17, delay: '1.1s', duration: '6.4s', color: 'text-[#72E2E6]/75 dark:text-white/80' },
+    { top: '25%', left: '4%', size: 12, delay: '0.6s', duration: '5.5s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/70' },
+    { top: '37%', left: '94%', size: 16, delay: '1.7s', duration: '6.1s', color: 'text-[#7DA7D9]/70 dark:text-[#72E2E6]/75' },
+    { top: '49%', left: '5%', size: 14, delay: '0.9s', duration: '6.8s', color: 'text-[#72E2E6]/65 dark:text-white/75' },
+    { top: '62%', left: '92%', size: 15, delay: '2.1s', duration: '5.9s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/70' },
+    { top: '75%', left: '6%', size: 16, delay: '1.4s', duration: '6.3s', color: 'text-[#7DA7D9]/70 dark:text-[#72E2E6]/75' },
+    { top: '88%', left: '91%', size: 15, delay: '0.4s', duration: '5.7s', color: 'text-[#72E2E6]/70 dark:text-white/75' },
   ];
 
-  container.innerHTML = stars
-    .map(
-      (s) => `
-      <span
-        class="absolute select-none animate-gentle-star ${s.color}"
-        style="top:${s.top};left:${s.left};font-size:${s.size}px;animation-delay:${s.delay};animation-duration:${s.duration};"
-      >${s.char}</span>`
-    )
-    .join('');
+  const dots = [
+    { top: '10%', left: '9%', size: 2.5, delay: '0.3s', duration: '3.2s', color: 'text-[#7DA7D9]/60 dark:text-white/70' },
+    { top: '20%', left: '89%', size: 2, delay: '1.4s', duration: '2.9s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/75' },
+    { top: '32%', left: '7%', size: 2, delay: '2.1s', duration: '3.4s', color: 'text-[#E0C860]/70 dark:text-[#FFF7CC]/75' },
+    { top: '44%', left: '91%', size: 2.5, delay: '0.8s', duration: '3.0s', color: 'text-[#7DA7D9]/60 dark:text-white/70' },
+    { top: '57%', left: '4%', size: 2.5, delay: '1.9s', duration: '3.5s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/75' },
+    { top: '69%', left: '95%', size: 2, delay: '0.5s', duration: '2.8s', color: 'text-[#7DA7D9]/60 dark:text-white/70' },
+    { top: '82%', left: '8%', size: 2.5, delay: '1.2s', duration: '3.3s', color: 'text-[#E0C860]/70 dark:text-[#FFF7CC]/70' },
+    { top: '92%', left: '86%', size: 2, delay: '2.4s', duration: '3.1s', color: 'text-[#72E2E6]/65 dark:text-white/70' },
+  ];
+
+  container.innerHTML = glints.map(createStarGlintMarkup).join('') + dots.map(createStardustDotMarkup).join('');
 }
 
 function renderHeroScatteredStars() {
   const container = document.getElementById('hero-scattered-stars');
   if (!container) return;
 
-  const heroStars = [
-    // Top perimeter
-    { top: '6%', left: '6%', char: '✦', size: 16, delay: '0s', duration: '5.5s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
-    { top: '8%', left: '19%', char: '✧', size: 12, delay: '1.2s', duration: '6.4s', color: 'text-[#72E2E6]/70 dark:text-[#72E2E6]/65' },
-    { top: '5%', left: '34%', char: '⋆', size: 14, delay: '0.4s', duration: '5.8s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
-    { top: '6%', left: '65%', char: '⋆', size: 13, delay: '1.6s', duration: '6.2s', color: 'text-[#7DA7D9]/60 dark:text-[#72E2E6]/55' },
-    { top: '9%', left: '79%', char: '✧', size: 15, delay: '0.7s', duration: '6s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/65' },
-    { top: '7%', left: '92%', char: '✦', size: 17, delay: '1.8s', duration: '5.8s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/65' },
+  // Slim glowing 4-point starlight glints (matching starry sky reference)
+  const heroGlints = [
+    { top: '6%', left: '7%', size: 17, delay: '0s', duration: '5.2s', color: 'text-[#7DA7D9]/80 dark:text-white/90' },
+    { top: '11%', left: '21%', size: 11, delay: '1.1s', duration: '5.8s', color: 'text-[#72E2E6]/85 dark:text-[#72E2E6]/90' },
+    { top: '6%', left: '37%', size: 9, delay: '0.5s', duration: '4.9s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/85' },
+    { top: '7%', left: '64%', size: 10, delay: '1.5s', duration: '5.4s', color: 'text-[#7DA7D9]/75 dark:text-white/85' },
+    { top: '10%', left: '80%', size: 18, delay: '0.7s', duration: '6.0s', color: 'text-[#72E2E6]/85 dark:text-white/95' },
+    { top: '7%', left: '92%', size: 13, delay: '1.8s', duration: '5.5s', color: 'text-[#7DA7D9]/80 dark:text-[#72E2E6]/85' },
 
-    // Left flank
-    { top: '20%', left: '11%', char: '⋆', size: 13, delay: '2.1s', duration: '5.7s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/60' },
-    { top: '28%', left: '25%', char: '✦', size: 11, delay: '0.8s', duration: '6.3s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
-    { top: '35%', left: '5%', char: '✧', size: 15, delay: '2.3s', duration: '6.6s', color: 'text-[#7DA7D9]/60 dark:text-[#7DA7D9]/60' },
-    { top: '45%', left: '16%', char: '✦', size: 12, delay: '0.9s', duration: '5.2s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/65' },
-    { top: '56%', left: '7%', char: '⋆', size: 14, delay: '1.4s', duration: '6.1s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
-    { top: '64%', left: '21%', char: '✧', size: 12, delay: '0.3s', duration: '5.9s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/55' },
+    { top: '21%', left: '11%', size: 14, delay: '2.0s', duration: '5.6s', color: 'text-[#72E2E6]/85 dark:text-white/90' },
+    { top: '28%', left: '24%', size: 9, delay: '0.9s', duration: '5.1s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/80' },
+    { top: '37%', left: '5%', size: 16, delay: '2.2s', duration: '6.1s', color: 'text-[#7DA7D9]/80 dark:text-[#72E2E6]/90' },
+    { top: '47%', left: '15%', size: 11, delay: '0.4s', duration: '4.8s', color: 'text-[#72E2E6]/80 dark:text-white/85' },
+    { top: '59%', left: '8%', size: 13, delay: '1.3s', duration: '5.7s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/85' },
 
-    // Right flank
-    { top: '21%', left: '87%', char: '✦', size: 13, delay: '1.1s', duration: '5.6s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
-    { top: '29%', left: '74%', char: '✧', size: 11, delay: '2.5s', duration: '6.5s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
-    { top: '38%', left: '84%', char: '✦', size: 13, delay: '1.5s', duration: '6.2s', color: 'text-[#E0C860]/85 dark:text-[#FFF7CC]/65' },
-    { top: '47%', left: '94%', char: '✧', size: 16, delay: '0.3s', duration: '5.7s', color: 'text-[#7DA7D9]/65 dark:text-[#72E2E6]/60' },
-    { top: '58%', left: '89%', char: '⋆', size: 14, delay: '2.0s', duration: '6.0s', color: 'text-[#72E2E6]/65 dark:text-[#72E2E6]/55' },
-    { top: '65%', left: '78%', char: '✦', size: 11, delay: '0.6s', duration: '5.5s', color: 'text-[#7DA7D9]/60 dark:text-[#FFF7CC]/55' },
+    { top: '20%', left: '88%', size: 15, delay: '1.2s', duration: '5.4s', color: 'text-[#7DA7D9]/80 dark:text-white/90' },
+    { top: '29%', left: '75%', size: 10, delay: '2.4s', duration: '5.9s', color: 'text-[#72E2E6]/80 dark:text-[#72E2E6]/85' },
+    { top: '39%', left: '85%', size: 19, delay: '1.6s', duration: '6.2s', color: 'text-[#72E2E6]/90 dark:text-white/95' },
+    { top: '49%', left: '94%', size: 12, delay: '0.3s', duration: '5.2s', color: 'text-[#7DA7D9]/75 dark:text-[#FFF7CC]/85' },
+    { top: '61%', left: '89%', size: 14, delay: '1.9s', duration: '5.8s', color: 'text-[#7DA7D9]/80 dark:text-[#72E2E6]/85' },
 
-    // Bottom framing
-    { top: '72%', left: '10%', char: '✦', size: 16, delay: '1.9s', duration: '6.5s', color: 'text-[#72E2E6]/60 dark:text-[#72E2E6]/55' },
-    { top: '79%', left: '25%', char: '✧', size: 12, delay: '0.5s', duration: '5.4s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/55' },
-    { top: '86%', left: '15%', char: '⋆', size: 14, delay: '2.6s', duration: '6.3s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
-    { top: '88%', left: '37%', char: '✧', size: 11, delay: '1.3s', duration: '5.8s', color: 'text-[#72E2E6]/55 dark:text-[#72E2E6]/50' },
-    { top: '87%', left: '63%', char: '✦', size: 11, delay: '0.7s', duration: '6.2s', color: 'text-[#7DA7D9]/55 dark:text-[#FFF7CC]/50' },
-    { top: '75%', left: '75%', char: '✧', size: 12, delay: '2.1s', duration: '6.1s', color: 'text-[#7DA7D9]/60 dark:text-[#7DA7D9]/55' },
-    { top: '82%', left: '88%', char: '✦', size: 16, delay: '1.0s', duration: '5.9s', color: 'text-[#7DA7D9]/65 dark:text-[#FFF7CC]/60' },
-    { top: '90%', left: '80%', char: '⋆', size: 13, delay: '2.4s', duration: '6.4s', color: 'text-[#E0C860]/75 dark:text-[#FFF7CC]/55' },
+    { top: '72%', left: '11%', size: 18, delay: '1.7s', duration: '6.0s', color: 'text-[#7DA7D9]/80 dark:text-white/90' },
+    { top: '80%', left: '25%', size: 11, delay: '0.6s', duration: '5.0s', color: 'text-[#72E2E6]/80 dark:text-[#72E2E6]/85' },
+    { top: '87%', left: '17%', size: 13, delay: '2.3s', duration: '5.9s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/80' },
+    { top: '88%', left: '38%', size: 9, delay: '1.1s', duration: '5.3s', color: 'text-[#7DA7D9]/70 dark:text-white/80' },
+    { top: '87%', left: '63%', size: 10, delay: '0.8s', duration: '5.6s', color: 'text-[#72E2E6]/75 dark:text-[#FFF7CC]/80' },
+    { top: '74%', left: '76%', size: 14, delay: '2.1s', duration: '5.7s', color: 'text-[#72E2E6]/85 dark:text-white/90' },
+    { top: '81%', left: '88%', size: 17, delay: '1.0s', duration: '5.8s', color: 'text-[#7DA7D9]/85 dark:text-[#72E2E6]/90' },
+    { top: '90%', left: '81%', size: 11, delay: '2.5s', duration: '6.1s', color: 'text-[#E0C860]/80 dark:text-[#FFF7CC]/80' },
   ];
 
-  container.innerHTML = heroStars
-    .map(
-      (s) => `
-      <span
-        class="absolute select-none animate-gentle-star ${s.color}"
-        style="top:${s.top};left:${s.left};font-size:${s.size}px;animation-delay:${s.delay};animation-duration:${s.duration};"
-      >${s.char}</span>`
-    )
-    .join('');
+  // Deterministic fine stardust pinpoints across the Hero sky
+  const stardustDots = Array.from({ length: 56 }, (_, i) => {
+    const leftVal = ((i * 37 + 11) % 94) + 3;
+    const topVal = ((i * 53 + 7) % 90) + 4;
+    const sizeVal = i % 5 === 0 ? 3 : i % 2 === 0 ? 2 : 1.5;
+    const delayVal = ((i * 0.37) % 3.2).toFixed(2);
+    const durVal = (2.4 + ((i * 0.29) % 2.1)).toFixed(2);
+    const palette = [
+      'text-[#7DA7D9]/65 dark:text-white/85',
+      'text-[#72E2E6]/75 dark:text-[#72E2E6]/85',
+      'text-[#E0C860]/70 dark:text-[#FFF7CC]/80',
+      'text-[#FFFFFF] dark:text-white/90',
+    ];
+    return {
+      top: `${topVal}%`,
+      left: `${leftVal}%`,
+      size: sizeVal,
+      delay: `${delayVal}s`,
+      duration: `${durVal}s`,
+      color: palette[i % palette.length],
+    };
+  });
+
+  container.innerHTML =
+    stardustDots.map(createStardustDotMarkup).join('') +
+    heroGlints.map(createStarGlintMarkup).join('');
+}
+
+function initHeroFlyingStars() {
+  const box = document.getElementById('hero-title-box');
+  const layer = document.getElementById('hero-flying-stars');
+  if (!box || !layer) return;
+
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+
+  const colors = [
+    'text-[#72E2E6]',
+    'text-[#7DA7D9] dark:text-white',
+    'text-[#E0C860] dark:text-[#FFF7CC]',
+  ];
+
+  const spawnStar = (originXPercent, originYPercent, tx, ty, delayMs = 0) => {
+    if (layer.childElementCount >= 22) return;
+
+    const star = document.createElement('span');
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const isDot = Math.random() < 0.28;
+    const size = isDot ? 3 + Math.floor(Math.random() * 2) : 11 + Math.floor(Math.random() * 9);
+    const dur = (1.15 + Math.random() * 0.45).toFixed(2);
+    const rot = `${Math.round((Math.random() > 0.5 ? 1 : -1) * (20 + Math.random() * 55))}deg`;
+
+    star.className = `hero-flying-star ${color} ${isDot ? 'stardust-dot' : 'starlight-glint'}`;
+    star.style.left = `${originXPercent}%`;
+    star.style.top = `${originYPercent}%`;
+    star.style.width = `${size}px`;
+    star.style.height = `${size}px`;
+
+    if (isDot) {
+      star.style.backgroundColor = 'currentColor';
+    } else {
+      star.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" class="w-full h-full block"><path d="${STARLIGHT_PATH}" /></svg>`;
+    }
+
+    star.style.setProperty('--tx', `${Math.round(tx)}px`);
+    star.style.setProperty('--ty', `${Math.round(ty)}px`);
+    star.style.setProperty('--rot', rot);
+    star.style.setProperty('--dur', `${dur}s`);
+    star.style.setProperty('--delay', `${(delayMs / 1000).toFixed(2)}s`);
+    star.style.setProperty('--end-scale', (0.35 + Math.random() * 0.25).toFixed(2));
+
+    star.addEventListener('animationend', () => {
+      star.remove();
+    }, { once: true });
+
+    layer.appendChild(star);
+  };
+
+  const launchPerimeterFlight = () => {
+    const trajectories = [
+      { x: 6, y: 8, tx: -58, ty: -62, delay: 0 },
+      { x: 28, y: 2, tx: -22, ty: -72, delay: 70 },
+      { x: 68, y: 2, tx: 26, ty: -70, delay: 110 },
+      { x: 94, y: 10, tx: 60, ty: -58, delay: 40 },
+      { x: 98, y: 54, tx: 68, ty: -24, delay: 140 },
+      { x: 88, y: 94, tx: 52, ty: 38, delay: 170 },
+      { x: 10, y: 92, tx: -52, ty: 36, delay: 90 },
+      { x: 2, y: 50, tx: -66, ty: -26, delay: 150 },
+    ];
+
+    trajectories.forEach((pt) => {
+      const jitterX = (Math.random() - 0.5) * 14;
+      const jitterY = (Math.random() - 0.5) * 14;
+      spawnStar(pt.x, pt.y, pt.tx + jitterX, pt.ty + jitterY, pt.delay);
+    });
+  };
+
+  let lastMoveTime = 0;
+
+  box.addEventListener('mouseenter', () => {
+    launchPerimeterFlight();
+  });
+
+  box.addEventListener('touchstart', () => {
+    launchPerimeterFlight();
+  }, { passive: true });
+
+  box.addEventListener('mousemove', (e) => {
+    const now = performance.now();
+    if (now - lastMoveTime < 260) return;
+    lastMoveTime = now;
+
+    const rect = box.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+
+    const relX = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+    const relY = Math.max(0, Math.min(100, ((e.clientY - rect.top) / rect.height) * 100));
+    const dirX = (relX - 50) * 1.1 + (Math.random() - 0.5) * 32;
+    const dirY = -42 - Math.random() * 34;
+
+    spawnStar(relX, relY, dirX, dirY, 0);
+  }, { passive: true });
 }
 
 function renderMarqueeRibbons() {
@@ -1841,6 +1971,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initCertificatesCarouselNav();
   renderBackgroundStars();
   renderHeroScatteredStars();
+  initHeroFlyingStars();
   renderMarqueeRibbons();
   applyLanguage(currentLang);
   initWorksFilter();

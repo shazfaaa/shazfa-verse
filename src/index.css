@@ -47,6 +47,44 @@
   font-family: var(--font-sans);
 }
 
+.font-script {
+  font-family: 'Pinyon Script', var(--font-fraunces), cursive;
+}
+
+.bg-hero-mist {
+  background-image:
+    radial-gradient(ellipse at 14% 18%, rgba(220, 238, 255, 0.72) 0%, transparent 52%),
+    radial-gradient(ellipse at 86% 24%, rgba(125, 167, 217, 0.18) 0%, transparent 48%),
+    radial-gradient(ellipse at 78% 82%, rgba(255, 247, 204, 0.55) 0%, transparent 52%),
+    radial-gradient(rgba(125, 167, 217, 0.22) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 20px 20px;
+}
+
+.dark .bg-hero-mist {
+  background-image:
+    radial-gradient(ellipse at 14% 18%, rgba(114, 226, 230, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse at 86% 24%, rgba(125, 167, 217, 0.16) 0%, transparent 48%),
+    radial-gradient(ellipse at 78% 82%, rgba(255, 247, 204, 0.08) 0%, transparent 52%),
+    radial-gradient(rgba(114, 226, 230, 0.16) 1.2px, transparent 1.2px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 22px 22px;
+}
+
+.hero-glow-title {
+  text-shadow: 0 0 18px rgba(125, 167, 217, 0.24), 0 0 32px rgba(255, 255, 255, 0.9);
+}
+
+.dark .hero-glow-title {
+  text-shadow: 0 0 22px rgba(114, 226, 230, 0.48), 0 0 42px rgba(125, 167, 217, 0.28);
+}
+
+.hero-glow-soft {
+  text-shadow: 0 0 14px rgba(114, 226, 230, 0.28);
+}
+
+.dark .hero-glow-soft {
+  text-shadow: 0 0 16px rgba(255, 247, 204, 0.45);
+}
+
 /* Smooth continuous marquee */
 @keyframes marquee {
   0% { transform: translateX(0%); }
@@ -128,6 +166,53 @@
 
 .animate-gentle-star {
   animation: gentle-star-drift 5.5s ease-in-out infinite;
+}
+
+/* Luminous 4-Point Starlight Glints & Shimmering Stardust */
+.starlight-glint {
+  filter: drop-shadow(0 0 4px rgba(125, 167, 217, 0.55)) drop-shadow(0 0 10px rgba(114, 226, 230, 0.35));
+}
+
+.dark .starlight-glint {
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8)) drop-shadow(0 0 12px rgba(114, 226, 230, 0.55));
+}
+
+.stardust-dot {
+  border-radius: 9999px;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* Smooth Flying Stars on Hero Box Touch / Hover */
+@keyframes hero-star-fly {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.35) rotate(0deg);
+  }
+  18% {
+    opacity: 0.95;
+    transform: translate3d(calc(var(--tx) * 0.22), calc(var(--ty) * 0.22), 0) scale(1.08) rotate(calc(var(--rot) * 0.25));
+  }
+  75% {
+    opacity: 0.78;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--tx), var(--ty), 0) scale(var(--end-scale, 0.45)) rotate(var(--rot));
+  }
+}
+
+.hero-flying-star {
+  position: absolute;
+  pointer-events: none;
+  user-select: none;
+  will-change: transform, opacity;
+  animation: hero-star-fly var(--dur, 1.35s) cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-flying-star {
+    animation: none;
+  }
 }
 
 /* Moodboard Aesthetic: Dreamy Film Grain, Neon Stage Glow, & Dot Grid */
