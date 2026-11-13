@@ -1725,6 +1725,10 @@ function initKeyboardShortcuts() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  const profileImg = document.getElementById('profile-photo');
+  if (profileImg) {
+    profileImg.setAttribute('src', `${import.meta.env.BASE_URL}images/profile-shazfa.png`);
+  }
   initTheme();
   initNavbarAndScroll();
   initClockAndYear();
