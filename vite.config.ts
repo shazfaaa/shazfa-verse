@@ -6,7 +6,7 @@ import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
-    base: '/shazfa-verse/',
+    base: process.env.GITHUB_ACTIONS ? '/shazfa-verse/' : '/',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
