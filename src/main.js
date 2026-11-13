@@ -1,24 +1,16 @@
 import './index.css';
+import { t } from './data/i18n.js';
 import {
   PERSONAL_INFO,
-  CERTIFICATES,
-  EXPERIENCE_TIMELINE,
-  UI_DESIGN_PROJECTS,
-  WEB_DEV_PROJECTS,
-  ALL_PROJECTS,
+  getCertificates,
+  getExperienceTimeline,
+  getUiDesignProjects,
+  getWebDevProjects,
+  getAllProjects,
 } from './data/portfolioData.js';
-import {
-  IT_BA_CASE_STUDY,
-  RUNA_MASTER_PDF,
-  RUNA_PROJECT_META,
-  RUNA_CHAPTERS,
-  RUNA_CASE_STUDY_DATA,
-  RUNA_BRD_DATA,
-  RUNA_SRS_DATA,
-  RUNA_BUSINESS_PROCESS_DATA,
-  RUNA_BACKLOG_DATA,
-  RUNA_UAT_DATA,
-} from './data/runaDocumentation.js';
+import { getRunaData } from './data/runaDocumentation.js';
+
+let currentLang = localStorage.getItem('portfolio-lang') === 'id' ? 'id' : 'en';
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -27,6 +19,10 @@ function escapeHtml(value) {
     .replaceAll('>', '&gt;')
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&#39;');
+}
+
+function resolveKey(obj, path) {
+  return path.split('.').reduce((acc, part) => (acc && acc[part] !== undefined ? acc[part] : undefined), obj);
 }
 
 function copyText(text, onDone) {
@@ -53,7 +49,7 @@ function copyText(text, onDone) {
 }
 
 /* ================================================================ */
-/* 1. THEME, NAVBAR, MOBILE DRAWER & CLOCK                          */
+/* 1. THEME, LANGUAGE, NAVBAR, MOBILE DRAWER & CLOCK                */
 /* ================================================================ */
 function initTheme() {
   const saved = localStorage.getItem('portfolio-theme');
@@ -70,6 +66,88 @@ function initTheme() {
       localStorage.setItem('portfolio-theme', isDark ? 'dark' : 'light');
     });
   }
+}
+
+function initLanguageSwitcher() {
+  document.querySelectorAll('.lang-switch-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetLang = btn.getAttribute('data-lang-btn');
+      if (targetLang === 'id' || targetLang === 'en') {
+        applyLanguage(targetLang);
+      }
+    });
+  });
+}
+
+function applyLanguage(lang) {
+  currentLang = lang === 'id' ? 'id' : 'en';
+  localStorage.setItem('portfolio-lang', currentLang);
+  document.documentElement.lang = currentLang;
+
+  const tr = t(currentLang);
+  document.title = tr.meta.title;
+
+  const descMeta = document.querySelector('meta[name="description"]');
+  if (descMeta) descMeta.setAttribute('content', tr.meta.description);
+  const ogTitleMeta = document.querySelector('meta[property="og:title"]');
+  if (ogTitleMeta) ogTitleMeta.setAttribute('content', tr.meta.title);
+  const ogDescMeta = document.querySelector('meta[property="og:description"]');
+  if (ogDescMeta) ogDescMeta.setAttribute('content', tr.meta.description);
+
+  // Update active styles for ID | EN switcher buttons
+  const activeLangClasses = ['bg-[#2F4860]', 'text-[#FFF7CC]', 'dark:bg-[#FFF7CC]', 'dark:text-[#2F4860]', 'shadow-2xs'];
+  const inactiveLangClasses = ['text-[#2F4860]/70', 'dark:text-[#DCEEFF]/70', 'hover:text-[#2F4860]', 'dark:hover:text-white'];
+
+  document.querySelectorAll('.lang-switch-btn').forEach((btn) => {
+    const isMatch = btn.getAttribute('data-lang-btn') === currentLang;
+    if (isMatch) {
+      btn.classList.remove(...inactiveLangClasses);
+      btn.classList.add(...activeLangClasses);
+    } else {
+      btn.classList.remove(...activeLangClasses);
+      btn.classList.add(...inactiveLangClasses);
+    }
+  });
+
+  // Update static text elements
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    const val = key ? resolveKey(tr, key) : undefined;
+    if (typeof val === 'string') {
+      el.textContent = val;
+    }
+  });
+
+  // Update rich-HTML static text elements
+  document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+    const key = el.getAttribute('data-i18n-html');
+    const val = key ? resolveKey(tr, key) : undefined;
+    if (typeof val === 'string') {
+      el.innerHTML = val;
+    }
+  });
+
+  // Re-render dynamic JS sections in the selected language
+  renderExperienceTimeline();
+  renderSkills();
+  renderCertificates();
+  renderProjects();
+  renderITBASection();
+
+  // Refresh open overlays if any
+  const csModal = document.getElementById('case-study-modal');
+  if (csModal && !csModal.classList.contains('hidden') && activeProjectIndex >= 0) {
+    renderCaseStudyModal();
+  }
+
+  const runaModal = document.getElementById('runa-doc-modal');
+  if (runaModal && !runaModal.classList.contains('hidden')) {
+    renderRunaDocModal();
+  }
+
+  window.requestAnimationFrame(() => {
+    refreshScrollReveal();
+  });
 }
 
 function initNavbarAndScroll() {
@@ -151,12 +229,13 @@ function initContactCopy() {
   const textBtn = document.getElementById('contact-copy-email-btn');
 
   const triggerCopy = () => {
+    const tr = t(currentLang);
     copyText(PERSONAL_INFO.email, () => {
       if (iconBtn) iconBtn.textContent = '✓';
-      if (textBtn) textBtn.textContent = 'Copied! ✓';
+      if (textBtn) textBtn.textContent = tr.contact.emailCopied;
       window.setTimeout(() => {
         if (iconBtn) iconBtn.textContent = '📋';
-        if (textBtn) textBtn.textContent = 'Copy';
+        if (textBtn) textBtn.textContent = t(currentLang).contact.emailCopy;
       }, 2000);
     });
   };
@@ -166,7 +245,7 @@ function initContactCopy() {
 }
 
 /* ================================================================ */
-/* 2. DECORATIVE STARS, FAIRY LIGHTS & MARQUEE RIBBONS              */
+/* 2. DECORATIVE STARS & MARQUEE RIBBONS                            */
 /* ================================================================ */
 function renderBackgroundStars() {
   const container = document.getElementById('background-stars');
@@ -257,19 +336,9 @@ function renderMarqueeRibbons() {
 function renderSkills() {
   const starsContainer = document.getElementById('software-stars');
   const personalContainer = document.getElementById('personal-skills');
+  const tr = t(currentLang).skills;
 
-  const softwareSkills = [
-    { name: 'Figma', level: 'Expert · UI Systems & Prototyping', color: '#FFF7CC' },
-    { name: 'Laravel', level: 'Proficient · MVC & REST', color: '#DCEEFF' },
-    { name: 'HTML5', level: 'Expert · Semantic Markup', color: '#FFF7CC' },
-    { name: 'CSS3', level: 'Expert · Tailwind & Responsive', color: '#DCEEFF' },
-    { name: 'JavaScript', level: 'Proficient · DOM & ES6+', color: '#FFF7CC' },
-    { name: 'PHP', level: 'Proficient · Backend Logic', color: '#DCEEFF' },
-    { name: 'MySQL', level: 'Proficient · 3NF & ERD', color: '#FFF7CC' },
-    { name: 'Bootstrap', level: 'Proficient · UI Grid & Forms', color: '#DCEEFF' },
-    { name: 'Git', level: 'Proficient · Version Control', color: '#FFF7CC' },
-    { name: 'Scrum', level: 'Proficient · Sprint, Backlog & UAT', color: '#DCEEFF' },
-  ];
+  const softwareSkills = tr.softwareItems;
 
   if (starsContainer) {
     starsContainer.innerHTML = `
@@ -290,7 +359,7 @@ function renderSkills() {
             .join('')}
         </div>
         <div id="software-skill-detail" class="px-4 py-2.5 rounded-xl bg-[#DCEEFF]/55 dark:bg-[#162331] border border-[#BDDAF7] dark:border-[#2F4860] text-xs font-mono text-[#2F4860] dark:text-[#FFF7CC]">
-          ✦ Figma — Expert · UI Systems &amp; Prototyping
+          ✦ ${escapeHtml(softwareSkills[0].name)} — ${escapeHtml(softwareSkills[0].level)}
         </div>
       </div>
     `;
@@ -309,21 +378,8 @@ function renderSkills() {
     });
   }
 
-  const personalSkills = [
-    'UI/UX Design',
-    'Agile Scrum',
-    'UAT Testing',
-    'BRD & SRS Documentation',
-    'Requirement Elicitation',
-    'Business Process (To-Be)',
-    'Wireframing & Prototyping',
-    'UML & ERD Modeling',
-    'Full-Stack Web Dev',
-    'English (Verbal & Written)',
-  ];
-
   if (personalContainer) {
-    personalContainer.innerHTML = personalSkills
+    personalContainer.innerHTML = tr.personalItems
       .map(
         (label, index) => `
       <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-mono font-semibold border ${
@@ -340,17 +396,33 @@ function renderSkills() {
 }
 
 /* ================================================================ */
-/* 4. CERTIFICATES CAROUSEL (TEXT-ONLY CARDS, DIRECT PDF/DRIVE)     */
+/* 4. CERTIFICATES CAROUSEL                                         */
 /* ================================================================ */
-function renderCertificates() {
+function initCertificatesCarouselNav() {
   const track = document.getElementById('cert-track');
   const prevBtn = document.getElementById('cert-prev-btn');
   const nextBtn = document.getElementById('cert-next-btn');
 
+  if (prevBtn && track) {
+    prevBtn.addEventListener('click', () => {
+      track.scrollBy({ left: -310, behavior: 'smooth' });
+    });
+  }
+  if (nextBtn && track) {
+    nextBtn.addEventListener('click', () => {
+      track.scrollBy({ left: 310, behavior: 'smooth' });
+    });
+  }
+}
+
+function renderCertificates() {
+  const track = document.getElementById('cert-track');
   if (!track) return;
 
-  track.innerHTML = CERTIFICATES.map(
-    (cert) => `
+  const certificates = getCertificates(currentLang);
+  track.innerHTML = certificates
+    .map(
+      (cert) => `
     <a
       href="${escapeHtml(cert.url)}"
       target="_blank"
@@ -380,18 +452,8 @@ function renderCertificates() {
         <span>↗</span>
       </div>
     </a>`
-  ).join('');
-
-  if (prevBtn) {
-    prevBtn.addEventListener('click', () => {
-      track.scrollBy({ left: -310, behavior: 'smooth' });
-    });
-  }
-  if (nextBtn) {
-    nextBtn.addEventListener('click', () => {
-      track.scrollBy({ left: 310, behavior: 'smooth' });
-    });
-  }
+    )
+    .join('');
 }
 
 /* ================================================================ */
@@ -400,6 +462,7 @@ function renderCertificates() {
 function renderProjectCard(project) {
   const visibleTools = project.tools.slice(0, 4);
   const extraCount = project.tools.length - visibleTools.length;
+  const pui = t(currentLang).projectUi;
 
   return `
   <article class="reveal-on-scroll group bg-white dark:bg-[#1A2837] rounded-3xl border-2 border-[#DCEEFF] dark:border-[#2F4860] hover:border-[#7DA7D9] dark:hover:border-[#72E2E6] overflow-hidden shadow-sm hover:shadow-xl hover:shadow-[#7DA7D9]/15 transition-all duration-300 flex flex-col justify-between">
@@ -460,7 +523,7 @@ function renderProjectCard(project) {
 
     <div class="px-6 sm:px-7 pb-6 pt-4 border-t border-[#DCEEFF] dark:border-[#2F4860] flex items-center justify-between gap-3">
       <div class="min-w-0">
-        <p class="text-[10px] font-mono uppercase text-[#7DA7D9] font-bold">Role</p>
+        <p class="text-[10px] font-mono uppercase text-[#7DA7D9] font-bold">${escapeHtml(pui.roleLabel)}</p>
         <p class="text-xs font-semibold text-[#2F4860] dark:text-white truncate">${escapeHtml(project.role)}</p>
       </div>
       <button
@@ -468,7 +531,7 @@ function renderProjectCard(project) {
         data-open-project="${escapeHtml(project.id)}"
         class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F4860] hover:bg-[#7DA7D9] text-[#FFF7CC] hover:text-[#2F4860] dark:bg-[#FFF7CC] dark:text-[#2F4860] dark:hover:bg-[#DCEEFF] font-syne font-bold text-xs transition-all cursor-pointer active:scale-95"
       >
-        <span>Case Study</span>
+        <span>${escapeHtml(pui.caseStudyCta)}</span>
         <span>→</span>
       </button>
     </div>
@@ -480,10 +543,10 @@ function renderProjects() {
   const webGrid = document.getElementById('web-dev-grid');
 
   if (uiGrid) {
-    uiGrid.innerHTML = UI_DESIGN_PROJECTS.map(renderProjectCard).join('');
+    uiGrid.innerHTML = getUiDesignProjects(currentLang).map(renderProjectCard).join('');
   }
   if (webGrid) {
-    webGrid.innerHTML = WEB_DEV_PROJECTS.map(renderProjectCard).join('');
+    webGrid.innerHTML = getWebDevProjects(currentLang).map(renderProjectCard).join('');
   }
 
   document.querySelectorAll('[data-open-project]').forEach((btn) => {
@@ -511,7 +574,8 @@ function closeCaseStudyModal() {
 }
 
 function openCaseStudyModal(projectId) {
-  const index = ALL_PROJECTS.findIndex((p) => p.id === projectId);
+  const projects = getAllProjects(currentLang);
+  const index = projects.findIndex((p) => p.id === projectId);
   if (index === -1) return;
   activeProjectIndex = index;
   activeGalleryIdx = 0;
@@ -520,12 +584,14 @@ function openCaseStudyModal(projectId) {
 
 function renderCaseStudyModal() {
   const modal = document.getElementById('case-study-modal');
-  if (!modal || activeProjectIndex < 0) return;
+  const projects = getAllProjects(currentLang);
+  if (!modal || activeProjectIndex < 0 || !projects[activeProjectIndex]) return;
 
-  const project = ALL_PROJECTS[activeProjectIndex];
+  const project = projects[activeProjectIndex];
+  const pui = t(currentLang).projectUi;
   const images = project.galleryImages && project.galleryImages.length > 0 ? project.galleryImages : [project.coverImage];
   const currentImg = images[activeGalleryIdx] || images[0];
-  const total = ALL_PROJECTS.length;
+  const total = projects.length;
 
   modal.classList.remove('hidden');
   modal.classList.add('flex');
@@ -538,7 +604,7 @@ function renderCaseStudyModal() {
       <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
         <button id="cs-back-top" type="button" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#DCEEFF]/70 dark:bg-[#203244] hover:bg-[#7DA7D9] text-[#2F4860] dark:text-white hover:text-[#2F4860] text-xs font-syne font-bold transition-colors cursor-pointer">
           <span>←</span>
-          <span>Back</span>
+          <span>${escapeHtml(pui.backBtn)}</span>
         </button>
 
         <div class="flex items-center gap-2">
@@ -580,21 +646,21 @@ function renderCaseStudyModal() {
           ${
             project.liveUrl
               ? `<a href="${escapeHtml(project.liveUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F4860] hover:bg-[#7DA7D9] text-[#FFF7CC] hover:text-[#2F4860] font-syne font-bold text-xs uppercase tracking-wider shadow-sm transition-all">
-                  <span>Live Website</span><span>↗</span>
+                  <span>${escapeHtml(pui.liveWebsite)}</span><span>↗</span>
                 </a>`
               : ''
           }
           ${
             project.figmaShareUrl
               ? `<a href="${escapeHtml(project.figmaShareUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#7DA7D9] hover:bg-[#2F4860] text-[#2F4860] hover:text-[#FFF7CC] font-syne font-bold text-xs uppercase tracking-wider shadow-sm transition-all">
-                  <span>Open Figma</span><span>↗</span>
+                  <span>${escapeHtml(pui.openFigma)}</span><span>↗</span>
                 </a>`
               : ''
           }
           ${
             project.githubUrl
               ? `<a href="${escapeHtml(project.githubUrl)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white dark:bg-[#203244] border-2 border-[#DCEEFF] dark:border-[#2F4860] hover:border-[#7DA7D9] text-[#2F4860] dark:text-white font-syne font-bold text-xs uppercase tracking-wider transition-all">
-                  <span>GitHub Repo</span><span>↗</span>
+                  <span>${escapeHtml(pui.githubRepo)}</span><span>↗</span>
                 </a>`
               : ''
           }
@@ -658,10 +724,10 @@ function renderCaseStudyModal() {
           ? `<div class="p-5 sm:p-6 rounded-2xl bg-[#FFF7CC]/70 dark:bg-[#1A2837] border-2 border-[#E7DB99] dark:border-[#72E2E6]/40 space-y-4">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p class="font-mono text-xs font-bold uppercase text-[#2F4860] dark:text-[#FFF7CC]">🔐 Akun Demo Aplikasi Live</p>
-                  <p class="text-xs text-[#2F4860]/80 dark:text-[#DCEEFF]/80">Password untuk semua akun demo: <code class="px-2 py-0.5 rounded bg-white dark:bg-[#203244] font-mono font-bold">${escapeHtml(project.demoCredentials.password)}</code></p>
+                  <p class="font-mono text-xs font-bold uppercase text-[#2F4860] dark:text-[#FFF7CC]">${escapeHtml(pui.demoTitle)}</p>
+                  <p class="text-xs text-[#2F4860]/80 dark:text-[#DCEEFF]/80">${escapeHtml(pui.demoPasswordDesc)} <code class="px-2 py-0.5 rounded bg-white dark:bg-[#203244] font-mono font-bold">${escapeHtml(project.demoCredentials.password)}</code></p>
                 </div>
-                <button type="button" data-copy-cred="${escapeHtml(project.demoCredentials.password)}" class="copy-cred-btn px-3 py-1.5 rounded-full bg-[#2F4860] text-[#FFF7CC] text-xs font-mono font-bold cursor-pointer hover:bg-[#7DA7D9] hover:text-[#2F4860]">Copy Password</button>
+                <button type="button" data-copy-cred="${escapeHtml(project.demoCredentials.password)}" class="copy-cred-btn px-3 py-1.5 rounded-full bg-[#2F4860] text-[#FFF7CC] text-xs font-mono font-bold cursor-pointer hover:bg-[#7DA7D9] hover:text-[#2F4860]">${escapeHtml(pui.copyPassword)}</button>
               </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 ${project.demoCredentials.accounts
@@ -672,7 +738,7 @@ function renderCaseStudyModal() {
                       <span class="text-[10px] font-mono font-bold uppercase text-[#7DA7D9]">${escapeHtml(acc.role)} · ${escapeHtml(acc.badge)}</span>
                       <p class="font-mono text-xs font-bold text-[#2F4860] dark:text-white truncate">${escapeHtml(acc.email)}</p>
                     </div>
-                    <button type="button" data-copy-cred="${escapeHtml(acc.email)}" class="copy-cred-btn shrink-0 px-2.5 py-1 rounded-lg bg-[#DCEEFF] dark:bg-[#162331] text-[#2F4860] dark:text-[#FFF7CC] text-[11px] font-mono font-bold cursor-pointer hover:bg-[#7DA7D9] hover:text-[#2F4860]">Copy</button>
+                    <button type="button" data-copy-cred="${escapeHtml(acc.email)}" class="copy-cred-btn shrink-0 px-2.5 py-1 rounded-lg bg-[#DCEEFF] dark:bg-[#162331] text-[#2F4860] dark:text-[#FFF7CC] text-[11px] font-mono font-bold cursor-pointer hover:bg-[#7DA7D9] hover:text-[#2F4860]">${escapeHtml(pui.copyBtn)}</button>
                   </div>`
                   )
                   .join('')}
@@ -684,17 +750,17 @@ function renderCaseStudyModal() {
       <!-- Overview, Challenge & Solution -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="md:col-span-3 p-6 sm:p-8 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2">
-          <h2 class="font-syne font-bold text-lg sm:text-xl text-[#2F4860] dark:text-white">✦ Overview</h2>
+          <h2 class="font-syne font-bold text-lg sm:text-xl text-[#2F4860] dark:text-white">${escapeHtml(pui.overview)}</h2>
           <p class="text-sm sm:text-base text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(project.overview)}</p>
         </div>
 
         <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">⚠ Challenge</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.challenge)}</h3>
             <p class="text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(project.challenge)}</p>
           </div>
           <div class="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">💡 Solution</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.solution)}</h3>
             <p class="text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(project.solution)}</p>
           </div>
         </div>
@@ -703,7 +769,7 @@ function renderCaseStudyModal() {
       <!-- Deliverables & Color Palette / Tools -->
       <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
         <div class="md:col-span-7 p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">📦 Key Deliverables</h3>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.deliverables)}</h3>
           <ul class="space-y-2">
             ${project.deliverables
               .map(
@@ -719,11 +785,11 @@ function renderCaseStudyModal() {
 
         <div class="md:col-span-5 space-y-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">🛠 Tools &amp; Stack</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.toolsStack)}</h3>
             <div class="flex flex-wrap gap-2">
               ${project.tools
                 .map(
-                  (t) => `<span class="px-3 py-1 rounded-full bg-[#DCEEFF]/70 dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] text-xs font-mono font-semibold">${escapeHtml(t)}</span>`
+                  (tool) => `<span class="px-3 py-1 rounded-full bg-[#DCEEFF]/70 dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] text-xs font-mono font-semibold">${escapeHtml(tool)}</span>`
                 )
                 .join('')}
             </div>
@@ -732,7 +798,7 @@ function renderCaseStudyModal() {
           ${
             project.colorPalette && project.colorPalette.length
               ? `<div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-                  <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">🎨 Color Palette</h3>
+                  <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.colorPalette)}</h3>
                   <div class="flex flex-wrap gap-3">
                     ${project.colorPalette
                       .map(
@@ -755,10 +821,10 @@ function renderCaseStudyModal() {
         project.figmaEmbedUrl
           ? `<div class="p-6 sm:p-7 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-4">
               <div class="flex items-center justify-between gap-4">
-                <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">🎨 Interactive Figma Preview</h3>
+                <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(pui.figmaPreview)}</h3>
                 ${
                   project.figmaShareUrl
-                    ? `<a href="${escapeHtml(project.figmaShareUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono font-bold text-[#7DA7D9] hover:underline">Open Fullscreen ↗</a>`
+                    ? `<a href="${escapeHtml(project.figmaShareUrl)}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono font-bold text-[#7DA7D9] hover:underline">${escapeHtml(pui.openFullscreen)}</a>`
                     : ''
                 }
               </div>
@@ -774,13 +840,13 @@ function renderCaseStudyModal() {
     <div class="border-t border-[#DCEEFF] dark:border-[#2F4860] bg-white dark:bg-[#172431] px-4 sm:px-8 py-5 mt-8">
       <div class="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-3">
         <button id="cs-prev-bottom" type="button" class="px-4 py-2 rounded-full border-2 border-[#DCEEFF] dark:border-[#2F4860] hover:border-[#7DA7D9] text-xs font-syne font-bold cursor-pointer">
-          ← Prev Project
+          ${escapeHtml(pui.prevProject)}
         </button>
         <button id="cs-back-bottom" type="button" class="px-5 py-2 rounded-full bg-[#FFF7CC] text-[#2F4860] border border-[#E7DB99] text-xs font-syne font-bold cursor-pointer hover:bg-[#DCEEFF]">
-          Back to Portfolio
+          ${escapeHtml(pui.backPortfolio)}
         </button>
         <button id="cs-next-bottom" type="button" class="px-4 py-2 rounded-full bg-[#2F4860] text-[#FFF7CC] text-xs font-syne font-bold cursor-pointer hover:bg-[#7DA7D9] hover:text-[#2F4860]">
-          Next Project →
+          ${escapeHtml(pui.nextProject)}
         </button>
       </div>
     </div>
@@ -817,7 +883,7 @@ function renderCaseStudyModal() {
       const val = btn.getAttribute('data-copy-cred') || '';
       const original = btn.textContent;
       copyText(val, () => {
-        btn.textContent = 'Copied! ✓';
+        btn.textContent = pui.copiedBtn;
         window.setTimeout(() => {
           btn.textContent = original;
         }, 1600);
@@ -835,6 +901,9 @@ function renderITBASection() {
   const container = document.getElementById('itba-showcase');
   if (!container) return;
 
+  const runa = getRunaData(currentLang);
+  const rui = t(currentLang).runaUi;
+
   container.innerHTML = `
     <div class="bg-white dark:bg-[#1A2837] rounded-3xl border-2 border-[#DCEEFF] dark:border-[#2F4860] shadow-xl shadow-[#7DA7D9]/10 overflow-hidden">
       <div class="grid grid-cols-1 lg:grid-cols-12 items-stretch">
@@ -842,8 +911,8 @@ function renderITBASection() {
         <div class="lg:col-span-5 bg-[#DCEEFF]/35 dark:bg-[#162331] flex items-center justify-center p-6 sm:p-8 border-b lg:border-b-0 lg:border-r border-[#DCEEFF] dark:border-[#2F4860]">
           <div class="w-full rounded-2xl overflow-hidden border-2 border-[#DCEEFF] dark:border-[#2F4860] shadow-md bg-white dark:bg-[#1A2837]">
             <img
-              src="${escapeHtml(IT_BA_CASE_STUDY.coverImage)}"
-              alt="${escapeHtml(IT_BA_CASE_STUDY.title)}"
+              src="${escapeHtml(runa.itBaCaseStudy.coverImage)}"
+              alt="${escapeHtml(runa.itBaCaseStudy.title)}"
               class="w-full aspect-[16/10] object-cover"
               loading="lazy"
             />
@@ -855,33 +924,34 @@ function renderITBASection() {
           <div class="space-y-4">
             <div class="flex flex-wrap items-center gap-2">
               <span class="px-3 py-1 rounded-full bg-[#2F4860] text-[#FFF7CC] font-mono text-xs font-bold">
-                ${escapeHtml(IT_BA_CASE_STUDY.code)}
+                ${escapeHtml(runa.itBaCaseStudy.code)}
               </span>
               <span class="px-3 py-1 rounded-full bg-[#FFF7CC] text-[#2F4860] font-mono text-xs font-bold border border-[#E7DB99]">
-                ${escapeHtml(RUNA_MASTER_PDF.pageCount)} Halaman · ${escapeHtml(RUNA_MASTER_PDF.sizeLabel)}
+                ${escapeHtml(runa.masterPdf.pageCount)} ${escapeHtml(rui.pagesUnit)} · ${escapeHtml(runa.masterPdf.sizeLabel)}
               </span>
               <span class="px-3 py-1 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] font-mono text-xs font-semibold">
-                ${escapeHtml(IT_BA_CASE_STUDY.year)} · ${escapeHtml(RUNA_PROJECT_META.methodology)}
+                ${escapeHtml(runa.itBaCaseStudy.year)} · ${escapeHtml(runa.projectMeta.methodology)}
               </span>
             </div>
 
             <div>
               <h3 class="font-syne font-extrabold text-2xl sm:text-3xl text-[#2F4860] dark:text-white leading-tight">
-                ${escapeHtml(IT_BA_CASE_STUDY.title)}
+                ${escapeHtml(runa.itBaCaseStudy.title)}
               </h3>
               <p class="font-fraunces italic text-sm sm:text-base text-[#7DA7D9] dark:text-[#FFF7CC] mt-1">
-                ${escapeHtml(IT_BA_CASE_STUDY.subtitle)} · ${escapeHtml(IT_BA_CASE_STUDY.client)}
+                ${escapeHtml(runa.itBaCaseStudy.subtitle)} · ${escapeHtml(runa.itBaCaseStudy.client)}
               </p>
             </div>
 
             <p class="text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed font-sans-body">
-              ${escapeHtml(IT_BA_CASE_STUDY.summary)}
+              ${escapeHtml(runa.itBaCaseStudy.summary)}
             </p>
 
             <!-- 6 Chapters Quick Preview -->
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-              ${RUNA_CHAPTERS.map(
-                (ch) => `
+              ${runa.chapters
+                .map(
+                  (ch) => `
                 <button
                   type="button"
                   data-open-runa-chapter="${escapeHtml(ch.id)}"
@@ -895,7 +965,8 @@ function renderITBASection() {
                     ${escapeHtml(ch.shortTitle)}
                   </p>
                 </button>`
-              ).join('')}
+                )
+                .join('')}
             </div>
           </div>
 
@@ -905,7 +976,7 @@ function renderITBASection() {
               type="button"
               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#2F4860] hover:bg-[#7DA7D9] text-[#FFF7CC] hover:text-[#2F4860] font-syne font-bold text-xs uppercase tracking-wider shadow-sm transition-all cursor-pointer active:scale-95"
             >
-              <span>Buka Case Study &amp; Dokumen ITBA</span>
+              <span>${escapeHtml(rui.openCaseStudyBtn)}</span>
               <span>→</span>
             </button>
           </div>
@@ -940,15 +1011,15 @@ function openRunaDocModal(chapterId = 'case-study') {
   renderRunaDocModal();
 }
 
-function renderRunaChapterBody(chapterId) {
+function renderRunaChapterBody(chapterId, runa, rui) {
   if (chapterId === 'case-study') {
     return `
       <div class="space-y-8">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">5 Masalah Bisnis Utama</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch1Problems)}</h3>
             <div class="space-y-2.5">
-              ${RUNA_CASE_STUDY_DATA.problems
+              ${runa.caseStudyData.problems
                 .map(
                   (p) => `
                 <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860]">
@@ -961,18 +1032,18 @@ function renderRunaChapterBody(chapterId) {
           </div>
 
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">Tujuan Proyek &amp; Hasil Akhir</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch1Objectives)}</h3>
             <ul class="space-y-2 text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90">
-              ${RUNA_CASE_STUDY_DATA.objectives
+              ${runa.caseStudyData.objectives
                 .map(
                   (obj) => `<li class="flex items-start gap-2"><span class="text-[#7DA7D9] font-bold">✦</span><span>${escapeHtml(obj)}</span></li>`
                 )
                 .join('')}
             </ul>
             <div class="pt-3 border-t border-[#DCEEFF] dark:border-[#2F4860]">
-              <p class="font-mono text-[11px] font-bold uppercase text-[#7DA7D9] mb-2">Capaian Utama</p>
+              <p class="font-mono text-[11px] font-bold uppercase text-[#7DA7D9] mb-2">${escapeHtml(rui.ch1Outcomes)}</p>
               <ul class="space-y-1.5 text-xs text-[#2F4860]/85 dark:text-[#DCEEFF]/85">
-                ${RUNA_CASE_STUDY_DATA.outcomes
+                ${runa.caseStudyData.outcomes
                   .map(
                     (out) => `<li class="flex items-start gap-2"><span class="text-emerald-600 font-bold">✓</span><span>${escapeHtml(out)}</span></li>`
                   )
@@ -983,9 +1054,9 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-4">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">Tanggung Jawab IT Business Analyst</h3>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch1Responsibilities)}</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            ${RUNA_CASE_STUDY_DATA.responsibilities
+            ${runa.caseStudyData.responsibilities
               .map(
                 (r) => `
               <div class="p-4 rounded-2xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860]">
@@ -999,17 +1070,17 @@ function renderRunaChapterBody(chapterId) {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2.5">
-            <h4 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">Kebutuhan Admin / Pengurus</h4>
+            <h4 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">${escapeHtml(rui.ch1AdminNeeds)}</h4>
             <ul class="space-y-1.5 text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/85">
-              ${RUNA_CASE_STUDY_DATA.adminCapabilities
+              ${runa.caseStudyData.adminCapabilities
                 .map((c) => `<li class="flex items-start gap-2"><span class="text-[#7DA7D9]">•</span><span>${escapeHtml(c)}</span></li>`)
                 .join('')}
             </ul>
           </div>
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2.5">
-            <h4 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">Kebutuhan Warga</h4>
+            <h4 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">${escapeHtml(rui.ch1WargaNeeds)}</h4>
             <ul class="space-y-1.5 text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/85">
-              ${RUNA_CASE_STUDY_DATA.wargaCapabilities
+              ${runa.caseStudyData.wargaCapabilities
                 .map((c) => `<li class="flex items-start gap-2"><span class="text-[#7DA7D9]">•</span><span>${escapeHtml(c)}</span></li>`)
                 .join('')}
             </ul>
@@ -1017,8 +1088,8 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-5 sm:p-6 rounded-2xl bg-[#FFF7CC]/75 dark:bg-[#203244] border border-[#E7DB99] dark:border-[#2F4860]">
-          <p class="font-mono text-[11px] font-bold uppercase text-[#2F4860] dark:text-[#FFF7CC] mb-1">✦ Key Learning</p>
-          <p class="text-xs sm:text-sm text-[#2F4860] dark:text-[#DCEEFF] leading-relaxed">${escapeHtml(RUNA_CASE_STUDY_DATA.keyLearning)}</p>
+          <p class="font-mono text-[11px] font-bold uppercase text-[#2F4860] dark:text-[#FFF7CC] mb-1">${escapeHtml(rui.ch1KeyLearning)}</p>
+          <p class="text-xs sm:text-sm text-[#2F4860] dark:text-[#DCEEFF] leading-relaxed">${escapeHtml(runa.caseStudyData.keyLearning)}</p>
         </div>
       </div>
     `;
@@ -1028,15 +1099,15 @@ function renderRunaChapterBody(chapterId) {
     return `
       <div class="space-y-6">
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">Executive Summary</h3>
-          <p class="text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(RUNA_BRD_DATA.executiveSummary)}</p>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch2ExecSummary)}</h3>
+          <p class="text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(runa.brdData.executiveSummary)}</p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">Pemetaan Masalah &amp; Kebutuhan</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch2ProblemMap)}</h3>
             <div class="space-y-2.5">
-              ${RUNA_BRD_DATA.problemMatrix
+              ${runa.brdData.problemMatrix
                 .map(
                   (row) => `
                 <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs">
@@ -1049,9 +1120,9 @@ function renderRunaChapterBody(chapterId) {
           </div>
 
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">Stakeholder Profil (3 Peran)</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch2Stakeholders)}</h3>
             <div class="space-y-2.5">
-              ${RUNA_BRD_DATA.stakeholders
+              ${runa.brdData.stakeholders
                 .map(
                   (st) => `
                 <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs">
@@ -1065,9 +1136,9 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">8 Business Requirements (BR-01 – BR-08)</h3>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch2BrHeading)}</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            ${RUNA_BRD_DATA.businessRequirements
+            ${runa.brdData.businessRequirements
               .map(
                 (br) => `
               <div class="p-3.5 rounded-2xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860]">
@@ -1084,12 +1155,12 @@ function renderRunaChapterBody(chapterId) {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-5 rounded-2xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860]">
-            <p class="font-mono text-xs font-bold text-emerald-600 mb-1">IN-SCOPE</p>
-            <p class="text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90">${escapeHtml(RUNA_BRD_DATA.scope.inScope)}</p>
+            <p class="font-mono text-xs font-bold text-emerald-600 mb-1">${escapeHtml(rui.ch2InScope)}</p>
+            <p class="text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90">${escapeHtml(runa.brdData.scope.inScope)}</p>
           </div>
           <div class="p-5 rounded-2xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860]">
-            <p class="font-mono text-xs font-bold text-amber-600 mb-1">OUT-OF-SCOPE</p>
-            <p class="text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90">${escapeHtml(RUNA_BRD_DATA.scope.outOfScope)}</p>
+            <p class="font-mono text-xs font-bold text-amber-600 mb-1">${escapeHtml(rui.ch2OutScope)}</p>
+            <p class="text-xs sm:text-sm text-[#2F4860]/85 dark:text-[#DCEEFF]/90">${escapeHtml(runa.brdData.scope.outOfScope)}</p>
           </div>
         </div>
       </div>
@@ -1100,7 +1171,7 @@ function renderRunaChapterBody(chapterId) {
     return `
       <div class="space-y-6">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          ${RUNA_SRS_DATA.actors
+          ${runa.srsData.actors
             .map(
               (a) => `
             <div class="p-5 rounded-2xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860]">
@@ -1112,19 +1183,19 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">20 Functional Requirements (FR-01 – FR-20)</h3>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch3FrHeading)}</h3>
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
                 <tr class="border-b-2 border-[#DCEEFF] dark:border-[#2F4860] font-mono text-[#7DA7D9]">
-                  <th class="py-2 pr-3">ID</th>
-                  <th class="py-2 pr-3">Aktor</th>
-                  <th class="py-2 pr-3">Spesifikasi Kebutuhan</th>
-                  <th class="py-2">Trace</th>
+                  <th class="py-2 pr-3">${escapeHtml(rui.ch3Id)}</th>
+                  <th class="py-2 pr-3">${escapeHtml(rui.ch3Actor)}</th>
+                  <th class="py-2 pr-3">${escapeHtml(rui.ch3Spec)}</th>
+                  <th class="py-2">${escapeHtml(rui.ch3Trace)}</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-[#DCEEFF]/70 dark:divide-[#2F4860]/70">
-                ${RUNA_SRS_DATA.functionalRequirements
+                ${runa.srsData.functionalRequirements
                   .map(
                     (fr) => `
                   <tr>
@@ -1142,8 +1213,8 @@ function renderRunaChapterBody(chapterId) {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2.5">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">5 Business Rules (RB-01 – RB-05)</h3>
-            ${RUNA_SRS_DATA.businessRules
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch3RulesHeading)}</h3>
+            ${runa.srsData.businessRules
               .map(
                 (rb) => `
               <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs">
@@ -1156,10 +1227,10 @@ function renderRunaChapterBody(chapterId) {
 
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-4">
             <div>
-              <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white mb-2">12 Data Entities &amp; Tech Stack</h3>
-              <p class="text-xs font-mono text-[#7DA7D9] mb-2">${escapeHtml(RUNA_SRS_DATA.technicalEnv)}</p>
+              <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white mb-2">${escapeHtml(rui.ch3EntitiesHeading)}</h3>
+              <p class="text-xs font-mono text-[#7DA7D9] mb-2">${escapeHtml(runa.srsData.technicalEnv)}</p>
               <div class="flex flex-wrap gap-1.5">
-                ${RUNA_SRS_DATA.dataEntities
+                ${runa.srsData.dataEntities
                   .map(
                     (ent) => `<span class="px-2.5 py-1 rounded-full bg-[#DCEEFF]/70 dark:bg-[#203244] text-[11px] font-mono font-semibold">${escapeHtml(ent)}</span>`
                   )
@@ -1167,10 +1238,10 @@ function renderRunaChapterBody(chapterId) {
               </div>
             </div>
             <div class="pt-3 border-t border-[#DCEEFF] dark:border-[#2F4860] space-y-1.5">
-              <p class="font-mono text-xs font-bold text-[#7DA7D9]">Traceability Highlights</p>
-              ${RUNA_SRS_DATA.traceability
+              <p class="font-mono text-xs font-bold text-[#7DA7D9]">${escapeHtml(rui.ch3TraceHeading)}</p>
+              ${runa.srsData.traceability
                 .map(
-                  (tr) => `<p class="text-xs"><strong class="font-mono">${escapeHtml(tr.map)}:</strong> ${escapeHtml(tr.criteria)}</p>`
+                  (trItem) => `<p class="text-xs"><strong class="font-mono">${escapeHtml(trItem.map)}:</strong> ${escapeHtml(trItem.criteria)}</p>`
                 )
                 .join('')}
             </div>
@@ -1184,9 +1255,9 @@ function renderRunaChapterBody(chapterId) {
     return `
       <div class="space-y-6">
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">As-Is vs To-Be Comparison</h3>
+          <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch4Comparison)}</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            ${RUNA_BUSINESS_PROCESS_DATA.asIsToBe
+            ${runa.businessProcessData.asIsToBe
               .map(
                 (item) => `
               <div class="p-4 rounded-2xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs space-y-1.5">
@@ -1201,10 +1272,10 @@ function renderRunaChapterBody(chapterId) {
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">To-Be: Alur Pembayaran Iuran</h3>
-            <p class="text-xs font-mono text-[#7DA7D9]">${escapeHtml(RUNA_BUSINESS_PROCESS_DATA.paymentFlow.actors)}</p>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch4PaymentFlow)}</h3>
+            <p class="text-xs font-mono text-[#7DA7D9]">${escapeHtml(runa.businessProcessData.paymentFlow.actors)}</p>
             <div class="space-y-2">
-              ${RUNA_BUSINESS_PROCESS_DATA.paymentFlow.steps
+              ${runa.businessProcessData.paymentFlow.steps
                 .map(
                   (s) => `
                 <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs">
@@ -1217,16 +1288,16 @@ function renderRunaChapterBody(chapterId) {
           </div>
 
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">To-Be: Alur Pengaduan Warga</h3>
+            <h3 class="font-syne font-bold text-lg text-[#2F4860] dark:text-white">${escapeHtml(rui.ch4ComplaintFlow)}</h3>
             <div class="flex flex-wrap gap-1.5">
-              ${RUNA_BUSINESS_PROCESS_DATA.complaintFlow.statuses
+              ${runa.businessProcessData.complaintFlow.statuses
                 .map(
                   (st) => `<span class="px-2.5 py-0.5 rounded-full bg-[#FFF7CC] text-[#2F4860] text-[10px] font-mono font-bold border border-[#E7DB99]">${escapeHtml(st)}</span>`
                 )
                 .join('')}
             </div>
             <div class="space-y-2">
-              ${RUNA_BUSINESS_PROCESS_DATA.complaintFlow.steps
+              ${runa.businessProcessData.complaintFlow.steps
                 .map(
                   (s) => `
                 <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] text-xs">
@@ -1240,8 +1311,8 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-5 rounded-2xl bg-[#DCEEFF]/50 dark:bg-[#203244] border border-[#BDDAF7] dark:border-[#2F4860] text-xs sm:text-sm">
-          <strong class="font-mono text-[#2F4860] dark:text-[#FFF7CC]">Kontrol &amp; Catatan Lanjutan:</strong>
-          <span> ${escapeHtml(RUNA_BUSINESS_PROCESS_DATA.controlsAndOpenIssues)}</span>
+          <strong class="font-mono text-[#2F4860] dark:text-[#FFF7CC]">${escapeHtml(rui.ch4Controls)}</strong>
+          <span> ${escapeHtml(runa.businessProcessData.controlsAndOpenIssues)}</span>
         </div>
       </div>
     `;
@@ -1250,18 +1321,18 @@ function renderRunaChapterBody(chapterId) {
   if (chapterId === 'product-backlog') {
     return `
       <div class="space-y-6">
-        ${RUNA_BACKLOG_DATA.sprints
+        ${runa.backlogData.sprints
           .map(
             (sprint) => `
           <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-[#DCEEFF] dark:border-[#2F4860]">
               <div>
                 <h3 class="font-syne font-extrabold text-lg text-[#2F4860] dark:text-white">${escapeHtml(sprint.name)}</h3>
-                <p class="text-xs text-[#7DA7D9] font-mono">Deliverable: ${escapeHtml(sprint.deliverable)}</p>
+                <p class="text-xs text-[#7DA7D9] font-mono">${escapeHtml(rui.ch5Deliverable)}: ${escapeHtml(sprint.deliverable)}</p>
               </div>
               <div class="flex flex-wrap gap-2 text-[11px] font-mono">
-                <span class="px-2.5 py-1 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] font-semibold">Rencana: ${escapeHtml(sprint.timelinePlan)}</span>
-                <span class="px-2.5 py-1 rounded-full bg-[#FFF7CC] text-[#2F4860] border border-[#E7DB99] font-bold">Realisasi: ${escapeHtml(sprint.timelineActual)}</span>
+                <span class="px-2.5 py-1 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] font-semibold">${escapeHtml(rui.ch5Plan)}: ${escapeHtml(sprint.timelinePlan)}</span>
+                <span class="px-2.5 py-1 rounded-full bg-[#FFF7CC] text-[#2F4860] border border-[#E7DB99] font-bold">${escapeHtml(rui.ch5Actual)}: ${escapeHtml(sprint.timelineActual)}</span>
               </div>
             </div>
 
@@ -1273,7 +1344,7 @@ function renderRunaChapterBody(chapterId) {
                   <div class="flex items-center justify-between gap-2">
                     <span class="font-mono text-[11px] font-bold text-[#7DA7D9]">${escapeHtml(pb.id)}</span>
                     <span class="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold ${
-                      pb.priority === 'Tinggi'
+                      pb.priority === rui.ch5PriorityHigh || pb.priority === 'High' || pb.priority === 'Tinggi'
                         ? 'bg-[#2F4860] text-[#FFF7CC]'
                         : 'bg-[#DCEEFF] text-[#2F4860]'
                     }">${escapeHtml(pb.priority)}</span>
@@ -1291,13 +1362,12 @@ function renderRunaChapterBody(chapterId) {
     `;
   }
 
-  // Default: uat-report
   return `
     <div class="space-y-6">
       <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-4">
-        <p class="text-sm text-[#2F4860]/90 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(RUNA_UAT_DATA.objective)}</p>
+        <p class="text-sm text-[#2F4860]/90 dark:text-[#DCEEFF]/90 leading-relaxed">${escapeHtml(runa.uatData.objective)}</p>
         <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          ${RUNA_UAT_DATA.indicators
+          ${runa.uatData.indicators
             .map(
               (ind) => `
             <div class="p-3 rounded-2xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860]">
@@ -1311,8 +1381,8 @@ function renderRunaChapterBody(chapterId) {
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2.5">
-          <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">Instrumen Admin (Q01–Q08)</h3>
-          ${RUNA_UAT_DATA.adminItems
+          <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">${escapeHtml(rui.ch6AdminInstr)}</h3>
+          ${runa.uatData.adminItems
             .map(
               (q) => `
             <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] flex items-start justify-between gap-3 text-xs">
@@ -1324,8 +1394,8 @@ function renderRunaChapterBody(chapterId) {
         </div>
 
         <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-2.5">
-          <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">Instrumen Warga (Q09–Q16)</h3>
-          ${RUNA_UAT_DATA.wargaItems
+          <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">${escapeHtml(rui.ch6WargaInstr)}</h3>
+          ${runa.uatData.wargaItems
             .map(
               (q) => `
             <div class="p-3 rounded-xl bg-[#FAFCFF] dark:bg-[#203244] border border-[#DCEEFF] dark:border-[#2F4860] flex items-start justify-between gap-3 text-xs">
@@ -1338,16 +1408,16 @@ function renderRunaChapterBody(chapterId) {
       </div>
 
       <div class="p-6 rounded-3xl bg-white dark:bg-[#1A2837] border-2 border-[#DCEEFF] dark:border-[#2F4860] space-y-3">
-        <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">Distribusi Jawaban Likert (160 Respons)</h3>
+        <h3 class="font-syne font-bold text-base text-[#2F4860] dark:text-white">${escapeHtml(rui.ch6LikertTitle)}</h3>
         <div class="space-y-2">
-          ${RUNA_UAT_DATA.distribution
+          ${runa.uatData.distribution
             .map((d) => {
               const widthPct = Math.round((d.count / 160) * 100);
               return `
               <div class="space-y-1 text-xs">
                 <div class="flex justify-between font-mono font-semibold">
                   <span>${escapeHtml(d.label)}</span>
-                  <span>${escapeHtml(d.count)} respons (${widthPct}%)</span>
+                  <span>${escapeHtml(d.count)} ${escapeHtml(rui.ch6ResponsesUnit)} (${widthPct}%)</span>
                 </div>
                 <div class="h-2.5 w-full rounded-full bg-[#DCEEFF]/60 dark:bg-[#203244] overflow-hidden">
                   <div class="h-full rounded-full bg-[#7DA7D9]" style="width:${widthPct}%;"></div>
@@ -1356,13 +1426,13 @@ function renderRunaChapterBody(chapterId) {
             })
             .join('')}
         </div>
-        <p class="text-xs font-mono text-[#7DA7D9] pt-2">${escapeHtml(RUNA_UAT_DATA.summaryNote)}</p>
+        <p class="text-xs font-mono text-[#7DA7D9] pt-2">${escapeHtml(runa.uatData.summaryNote)}</p>
       </div>
 
       <div class="p-5 sm:p-6 rounded-2xl bg-[#FFF7CC]/75 dark:bg-[#203244] border border-[#E7DB99] dark:border-[#2F4860] space-y-1.5 text-xs sm:text-sm">
-        <p><strong>Kesimpulan:</strong> ${escapeHtml(RUNA_UAT_DATA.evaluationResult)}</p>
-        <p><strong>Keterbatasan:</strong> ${escapeHtml(RUNA_UAT_DATA.limitation)}</p>
-        <p><strong>Rekomendasi:</strong> ${escapeHtml(RUNA_UAT_DATA.recommendation)}</p>
+        <p><strong>${escapeHtml(rui.ch6Conclusion)}</strong> ${escapeHtml(runa.uatData.evaluationResult)}</p>
+        <p><strong>${escapeHtml(rui.ch6Limitation)}</strong> ${escapeHtml(runa.uatData.limitation)}</p>
+        <p><strong>${escapeHtml(rui.ch6Recommendation)}</strong> ${escapeHtml(runa.uatData.recommendation)}</p>
       </div>
     </div>
   `;
@@ -1372,13 +1442,16 @@ function renderRunaDocModal() {
   const modal = document.getElementById('runa-doc-modal');
   if (!modal) return;
 
+  const runa = getRunaData(currentLang);
+  const rui = t(currentLang).runaUi;
+
   const chIdx = Math.max(
     0,
-    RUNA_CHAPTERS.findIndex((c) => c.id === activeRunaChapterId)
+    runa.chapters.findIndex((c) => c.id === activeRunaChapterId)
   );
-  const currentChapter = RUNA_CHAPTERS[chIdx] || RUNA_CHAPTERS[0];
-  const prevChapter = chIdx > 0 ? RUNA_CHAPTERS[chIdx - 1] : null;
-  const nextChapter = chIdx < RUNA_CHAPTERS.length - 1 ? RUNA_CHAPTERS[chIdx + 1] : null;
+  const currentChapter = runa.chapters[chIdx] || runa.chapters[0];
+  const prevChapter = chIdx > 0 ? runa.chapters[chIdx - 1] : null;
+  const nextChapter = chIdx < runa.chapters.length - 1 ? runa.chapters[chIdx + 1] : null;
 
   modal.classList.remove('hidden');
   modal.classList.add('flex');
@@ -1386,12 +1459,12 @@ function renderRunaDocModal() {
   document.body.style.overflow = 'hidden';
 
   modal.innerHTML = `
-    <!-- Clean Top Sticky Header Bar (No duplicate Buka PDF / Unduh) -->
+    <!-- Clean Top Sticky Header Bar -->
     <div class="sticky top-0 z-30 bg-[#FAFCFF]/95 dark:bg-[#111A24]/95 backdrop-blur-md border-b border-[#DCEEFF] dark:border-[#2F4860] px-4 sm:px-8 py-3.5">
       <div class="max-w-5xl mx-auto flex items-center justify-between gap-4">
         <button id="runa-back-top" type="button" class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#DCEEFF]/70 dark:bg-[#203244] hover:bg-[#7DA7D9] text-[#2F4860] dark:text-white hover:text-[#2F4860] text-xs font-syne font-bold transition-colors cursor-pointer">
           <span>←</span>
-          <span>Back</span>
+          <span>${escapeHtml(rui.backBtn)}</span>
         </button>
 
         <span class="font-mono text-xs font-bold text-[#7DA7D9] truncate">
@@ -1406,16 +1479,15 @@ function renderRunaDocModal() {
 
     <!-- Main Viewer Body -->
     <div class="max-w-5xl mx-auto w-full px-4 sm:px-8 py-8 sm:py-10 space-y-8 flex-1">
-      <!-- Project Title & Master PDF Action Card (Single Source of Truth for PDF Open/Download) -->
       <div class="space-y-5">
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-2">
-            <span class="px-3 py-1 rounded-full bg-[#2F4860] text-[#FFF7CC] font-mono text-xs font-bold">${escapeHtml(RUNA_PROJECT_META.methodology)}</span>
-            <span class="px-3 py-1 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] font-mono text-xs font-semibold">${escapeHtml(RUNA_PROJECT_META.targetObject)}</span>
-            <span class="px-3 py-1 rounded-full bg-[#FFF7CC] text-[#2F4860] font-mono text-xs font-bold border border-[#E7DB99]">${escapeHtml(RUNA_PROJECT_META.year)}</span>
+            <span class="px-3 py-1 rounded-full bg-[#2F4860] text-[#FFF7CC] font-mono text-xs font-bold">${escapeHtml(runa.projectMeta.methodology)}</span>
+            <span class="px-3 py-1 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#DCEEFF] font-mono text-xs font-semibold">${escapeHtml(runa.projectMeta.targetObject)}</span>
+            <span class="px-3 py-1 rounded-full bg-[#FFF7CC] text-[#2F4860] font-mono text-xs font-bold border border-[#E7DB99]">${escapeHtml(runa.projectMeta.year)}</span>
           </div>
           <h1 class="font-syne font-extrabold text-2xl sm:text-4xl text-[#2F4860] dark:text-white tracking-tight">
-            ${escapeHtml(IT_BA_CASE_STUDY.title)}
+            ${escapeHtml(runa.itBaCaseStudy.title)}
           </h1>
           <p class="font-fraunces italic text-sm sm:text-lg text-[#7DA7D9] dark:text-[#FFF7CC]">
             ${escapeHtml(currentChapter.number)}. ${escapeHtml(currentChapter.title)} (${escapeHtml(currentChapter.pages)})
@@ -1427,28 +1499,28 @@ function renderRunaDocModal() {
           <div class="space-y-1">
             <div class="flex items-center gap-2">
               <span class="px-2.5 py-0.5 rounded-full bg-[#DCEEFF] dark:bg-[#203244] text-[#2F4860] dark:text-[#FFF7CC] font-mono text-[10px] font-bold">
-                ${escapeHtml(RUNA_MASTER_PDF.pageCount)} Halaman · ${escapeHtml(RUNA_MASTER_PDF.sizeLabel)}
+                ${escapeHtml(runa.masterPdf.pageCount)} ${escapeHtml(rui.pagesUnit)} · ${escapeHtml(runa.masterPdf.sizeLabel)}
               </span>
             </div>
-            <p class="font-syne font-bold text-base sm:text-lg text-[#2F4860] dark:text-white">${escapeHtml(RUNA_MASTER_PDF.fileName)}</p>
-            <p class="text-xs text-[#2F4860]/75 dark:text-[#DCEEFF]/75">Mencakup Case Study, BRD, SRS, Business Process, Product Backlog &amp; Sprint Plan, dan UAT Report.</p>
+            <p class="font-syne font-bold text-base sm:text-lg text-[#2F4860] dark:text-white">${escapeHtml(runa.masterPdf.fileName)}</p>
+            <p class="text-xs text-[#2F4860]/75 dark:text-[#DCEEFF]/75">${escapeHtml(rui.masterPdfDesc)}</p>
           </div>
           <div class="flex items-center gap-2.5 shrink-0">
             <a
-              href="${escapeHtml(RUNA_MASTER_PDF.url)}"
+              href="${escapeHtml(runa.masterPdf.url)}"
               target="_blank"
               rel="noopener noreferrer"
               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-[#2F4860] hover:bg-[#7DA7D9] text-[#FFF7CC] hover:text-[#2F4860] font-syne font-bold text-xs transition-colors"
             >
-              <span>Buka PDF</span>
+              <span>${escapeHtml(rui.openPdf)}</span>
               <span>↗</span>
             </a>
             <a
-              href="${escapeHtml(RUNA_MASTER_PDF.url)}"
-              download="${escapeHtml(RUNA_MASTER_PDF.downloadName)}"
+              href="${escapeHtml(runa.masterPdf.url)}"
+              download="${escapeHtml(runa.masterPdf.downloadName)}"
               class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white dark:bg-[#203244] border border-[#BDDAF7] dark:border-[#2F4860] hover:border-[#7DA7D9] text-[#2F4860] dark:text-white font-syne font-bold text-xs transition-colors"
             >
-              <span>Unduh</span>
+              <span>${escapeHtml(rui.downloadPdf)}</span>
               <span>↓</span>
             </a>
           </div>
@@ -1456,8 +1528,9 @@ function renderRunaDocModal() {
 
         <!-- 6 Chapter Switcher Pills -->
         <div class="flex flex-wrap gap-2">
-          ${RUNA_CHAPTERS.map(
-            (ch) => `
+          ${runa.chapters
+            .map(
+              (ch) => `
             <button
               type="button"
               data-switch-chapter="${escapeHtml(ch.id)}"
@@ -1469,12 +1542,13 @@ function renderRunaDocModal() {
             >
               ${escapeHtml(ch.number)}. ${escapeHtml(ch.shortTitle)}
             </button>`
-          ).join('')}
+            )
+            .join('')}
         </div>
       </div>
 
       <!-- Active Chapter Body -->
-      ${renderRunaChapterBody(currentChapter.id)}
+      ${renderRunaChapterBody(currentChapter.id, runa, rui)}
     </div>
 
     <!-- Bottom Chapter Navigation -->
@@ -1488,7 +1562,7 @@ function renderRunaDocModal() {
             : '<span></span>'
         }
         <button id="runa-back-bottom" type="button" class="px-5 py-2 rounded-full bg-[#FFF7CC] text-[#2F4860] border border-[#E7DB99] text-xs font-syne font-bold cursor-pointer hover:bg-[#DCEEFF]">
-          Back to Portfolio
+          ${escapeHtml(rui.backToPortfolio)}
         </button>
         ${
           nextChapter
@@ -1523,8 +1597,10 @@ function renderExperienceTimeline() {
   const container = document.getElementById('experience-timeline');
   if (!container) return;
 
-  container.innerHTML = EXPERIENCE_TIMELINE.map(
-    (item, idx) => `
+  const timeline = getExperienceTimeline(currentLang);
+  container.innerHTML = timeline
+    .map(
+      (item, idx) => `
     <div class="reveal-on-scroll relative group">
       <!-- Timeline Node -->
       <span class="absolute -left-[31px] sm:-left-[35px] top-1.5 w-3.5 h-3.5 rounded-full border-2 border-white dark:border-[#1A2837] ${
@@ -1554,13 +1630,14 @@ function renderExperienceTimeline() {
         <div class="flex flex-wrap gap-1.5 pt-1">
           ${item.tags
             .map(
-              (t) => `<span class="px-2 py-0.5 rounded-full bg-[#DCEEFF]/70 dark:bg-[#162331] text-[#2F4860] dark:text-[#DCEEFF] font-mono text-[10px] font-semibold">${escapeHtml(t)}</span>`
+              (tag) => `<span class="px-2 py-0.5 rounded-full bg-[#DCEEFF]/70 dark:bg-[#162331] text-[#2F4860] dark:text-[#DCEEFF] font-mono text-[10px] font-semibold">${escapeHtml(tag)}</span>`
             )
             .join('')}
         </div>
       </div>
     </div>`
-  ).join('');
+    )
+    .join('');
 }
 
 let revealObserver = null;
@@ -1644,7 +1721,6 @@ function initWorksFilter() {
       }
     });
 
-    // Ensure revealed items inside newly unhidden sections become visible immediately
     window.requestAnimationFrame(() => {
       refreshScrollReveal();
     });
@@ -1702,14 +1778,15 @@ function initKeyboardShortcuts() {
     const runaModal = document.getElementById('runa-doc-modal');
 
     if (csModal && !csModal.classList.contains('hidden')) {
+      const total = getAllProjects(currentLang).length;
       if (e.key === 'Escape') {
         closeCaseStudyModal();
       } else if (e.key === 'ArrowLeft') {
-        activeProjectIndex = (activeProjectIndex - 1 + ALL_PROJECTS.length) % ALL_PROJECTS.length;
+        activeProjectIndex = (activeProjectIndex - 1 + total) % total;
         activeGalleryIdx = 0;
         renderCaseStudyModal();
       } else if (e.key === 'ArrowRight') {
-        activeProjectIndex = (activeProjectIndex + 1) % ALL_PROJECTS.length;
+        activeProjectIndex = (activeProjectIndex + 1) % total;
         activeGalleryIdx = 0;
         renderCaseStudyModal();
       }
@@ -1730,19 +1807,16 @@ document.addEventListener('DOMContentLoaded', () => {
     profileImg.setAttribute('src', `${import.meta.env.BASE_URL}images/profile-shazfa.png`);
   }
   initTheme();
+  initLanguageSwitcher();
   initNavbarAndScroll();
   initClockAndYear();
   initContactCopy();
+  initCertificatesCarouselNav();
   renderBackgroundStars();
   renderHeroScatteredStars();
   renderMarqueeRibbons();
-  renderExperienceTimeline();
-  renderSkills();
-  renderCertificates();
-  renderProjects();
-  renderITBASection();
+  applyLanguage(currentLang);
   initWorksFilter();
-  refreshScrollReveal();
   initNavbarScrollSpy();
   initKeyboardShortcuts();
 });
