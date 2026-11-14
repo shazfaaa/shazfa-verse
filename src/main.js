@@ -516,7 +516,7 @@ function renderSkills() {
             .join('')}
         </div>
         <div id="software-skill-detail" class="px-4 py-2.5 rounded-xl bg-[#DCEEFF]/55 dark:bg-[#162331] border border-[#BDDAF7] dark:border-[#2F4860] text-xs font-mono text-[#2F4860] dark:text-[#FFF7CC]">
-          ✦ ${escapeHtml(softwareSkills[0].name)} — ${escapeHtml(softwareSkills[0].level)}
+          ✦ ${escapeHtml(softwareSkills[0].name)} — ${escapeHtml(softwareSkills[0].usage)}
         </div>
       </div>
     `;
@@ -527,7 +527,7 @@ function renderSkills() {
         const idx = Number(btn.getAttribute('data-skill-idx'));
         const s = softwareSkills[idx];
         if (s && detailEl) {
-          detailEl.textContent = `✦ ${s.name} — ${s.level}`;
+          detailEl.textContent = `✦ ${s.name} — ${s.usage}`;
         }
       };
       btn.addEventListener('mouseenter', showSkill);
